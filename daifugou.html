@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<link rel="icon" href="data:image/png;base64,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">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>大富豪</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--font);color:var(--text);background:var(--bg);display:flex;justify-content:center;min-height:100dvh;overflow-x:hidden}
+button,select,input{font:inherit;color:inherit}
+#app{width:100%;max-width:430px;min-height:100dvh;display:flex;flex-direction:column;background:var(--table);position:relative;overflow-x:hidden;box-shadow:0 0 40px rgba(0,0,0,.45)}
+.hidden{display:none!important}
+
+/* ---------- テーマ（CSS変数） ---------- */
+body[data-theme=casino]{
+  --font:'Hiragino Mincho ProN','Yu Mincho',serif;
+  --bg:#082015;
+  --table:radial-gradient(ellipse at 50% 35%,#267c4f 0%,#16573a 55%,#0b3121 100%);
+  --panel:rgba(8,30,20,.72);--panel-solid:#123d29;--text:#f7e9be;
+  --accent:#e9c35f;--accent2:#fff1c2;
+  --btn-bg:linear-gradient(#f2d17a,#b8862f);--btn-fg:#2b1b04;--btn-bd:#6e4c12;
+  --card-face:linear-gradient(160deg,#fffdf7,#f0e4c6);--ink-r:#b5162f;--ink-b:#161616;
+  --joker:linear-gradient(135deg,#f0cf6a,#7d3c97 50%,#2c6fb6);
+  --radius:8px;--btnr:12px;--frame:#8a6428;
+  --back:repeating-linear-gradient(45deg,rgba(255,220,140,.28) 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,rgba(255,220,140,.28) 0 2px,transparent 2px 9px),linear-gradient(#8c1a2c,#5e0f1d);
+  --shadow:0 6px 14px rgba(0,0,0,.45);
+}
+body[data-theme=wafu]{
+  --font:'Hiragino Mincho ProN','Yu Mincho',serif;
+  --bg:#0e1230;
+  --table:radial-gradient(circle at 50% 0%,rgba(255,255,255,.08),transparent 60%),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 2px,transparent 2px 6px),linear-gradient(170deg,#1f2a5e,#121837 70%);
+  --panel:rgba(12,16,44,.7);--panel-solid:#171f48;--text:#f3ead2;
+  --accent:#d9b44a;--accent2:#ff6b5a;
+  --btn-bg:linear-gradient(#c8283a,#7e1020);--btn-fg:#fff6e6;--btn-bd:#d9b44a;
+  --card-face:linear-gradient(#fbf6e9,#eadfc2);--ink-r:#b8262c;--ink-b:#1d1d24;
+  --joker:linear-gradient(135deg,#e4483d,#d9b44a);
+  --radius:4px;--btnr:4px;--frame:#4d5a92;
+  --back:radial-gradient(circle at 50% 100%,transparent 38%,#d9b44a 40%,transparent 43%) 0 0/22px 22px,radial-gradient(circle at 50% 100%,transparent 38%,#d9b44a 40%,transparent 43%) 11px 11px/22px 22px,#1d2a5f;
+  --shadow:0 6px 12px rgba(0,0,0,.4);
+}
+body[data-theme=neon]{
+  --font:'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;
+  --bg:#04000a;
+  --table:radial-gradient(ellipse at 50% 0%,#3a0f66 0%,#12052e 45%,#05000d 100%);
+  --panel:rgba(20,6,40,.7);--panel-solid:#14082c;--text:#e6f7ff;
+  --accent:#ff2bd6;--accent2:#00f0ff;
+  --btn-bg:rgba(0,240,255,.1);--btn-fg:#00f0ff;--btn-bd:#00f0ff;
+  --card-face:linear-gradient(160deg,#1f1438,#0e0a1f);--ink-r:#ff3d8a;--ink-b:#cfd8ff;
+  --joker:linear-gradient(135deg,#ff2bd6,#00f0ff);
+  --radius:6px;--btnr:10px;--frame:#00f0ff;
+  --back:repeating-linear-gradient(0deg,transparent 0 6px,rgba(0,240,255,.45) 6px 7px),repeating-linear-gradient(90deg,transparent 0 6px,rgba(255,43,214,.3) 6px 7px),#0b0520;
+  --shadow:0 0 14px rgba(0,240,255,.25),0 8px 16px rgba(0,0,0,.5);
+}
+body[data-theme=forest]{
+  --font:'Hiragino Maru Gothic ProN','BIZ UDPGothic','Hiragino Sans',sans-serif;
+  --bg:#2b3a22;
+  --table:repeating-linear-gradient(90deg,rgba(90,52,20,.18) 0 2px,transparent 2px 13px),repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 9px),linear-gradient(180deg,#9a6a3a,#7a4f2a 55%,#8a5d31);
+  --panel:rgba(40,30,15,.55);--panel-solid:#3b2c17;--text:#fbf6e6;
+  --accent:#a8d86e;--accent2:#f7e27a;
+  --btn-bg:linear-gradient(#b7e38f,#6fae4a);--btn-fg:#1b2d0e;--btn-bd:#3f6d24;
+  --card-face:linear-gradient(#fdfbf1,#ecf2da);--ink-r:#c2452f;--ink-b:#3b3b2c;
+  --joker:linear-gradient(135deg,#a8d86e,#f7e27a);
+  --radius:14px;--btnr:18px;--frame:#4c6b33;
+  --back:repeating-linear-gradient(0deg,#6e9a4f 0 6px,#5a8340 6px 12px);
+  --shadow:0 6px 12px rgba(20,12,0,.4);
+}
+
+/* ---------- 共通部品 ---------- */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px}
+.bar h1{font-size:18px;margin:0;letter-spacing:.12em;color:var(--accent)}
+.bar-r{display:flex;gap:6px}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:0 10px 6px;align-items:center}
+.sel{min-height:44px;padding:0 8px;border-radius:var(--btnr);background:var(--panel);border:1.5px solid var(--frame)}
+.btn{min-width:44px;min-height:44px;padding:8px 14px;border-radius:var(--btnr);background:var(--btn-bg);color:var(--btn-fg);border:1.5px solid var(--btn-bd);font-weight:700;cursor:pointer;box-shadow:var(--shadow);touch-action:manipulation;transition:transform .1s}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.big{flex:1;font-size:17px;min-height:48px}
+.btn.small{font-size:13px;padding:6px 10px;min-height:40px}
+.btn.ghost{background:transparent;color:var(--text);box-shadow:none}
+.btn.on{outline:3px solid var(--accent2)}
+.col{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.small{font-size:12px;opacity:.85}
+.empty{opacity:.75;font-size:14px;text-align:center;padding:10px}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:rgba(255,255,255,.14);margin-left:4px}
+.tag.gold{background:var(--accent);color:#2a1a05}
+.role{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--accent);color:#2a1a05;font-weight:700}
+.role.r4{background:#e9b9a5}.role.r5{background:#8a1f1f;color:#fff}
+.b{display:inline-block;font-size:12px;padding:4px 9px;border-radius:999px;background:var(--panel);border:1px solid var(--frame);margin:2px}
+.b.hot{background:var(--ink-r);color:#fff;border-color:var(--ink-r)}
+.badges{padding:0 10px 4px;display:flex;flex-wrap:wrap}
+.status{margin:6px 10px;padding:8px 12px;background:var(--panel);border-radius:12px;font-size:14px;min-height:50px;border:1px solid var(--frame)}
+.log{font-size:12px;opacity:.85;margin-top:3px}
+.ok{color:var(--accent2);font-weight:700}
+.ng{color:#ff8a7a;font-weight:700}
+.modebar{display:flex;gap:8px;padding:0 12px 6px;justify-content:center;flex-wrap:wrap}
+.modebar:empty{display:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;padding:10px 18px;border-radius:12px;font-size:14px;z-index:70;max-width:90%;text-align:center}
+.telop{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);padding:14px 26px;border-radius:16px;background:rgba(0,0,0,.72);color:var(--accent2);font-size:26px;font-weight:700;letter-spacing:.08em;white-space:nowrap;z-index:60;pointer-events:none;animation:telop 1s ease forwards;text-shadow:0 0 12px var(--accent)}
+.overlay:empty{display:none}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
+.modal{width:100%;max-width:400px;max-height:88dvh;overflow:auto;background:var(--panel-solid);color:var(--text);border:1.5px solid var(--accent);border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,.6)}
+.modal h2{margin:0 0 10px;font-size:20px;color:var(--accent)}
+.modal h3{margin:6px 0 4px;font-size:15px}
+.modal p{margin:4px 0 8px;font-size:14px;line-height:1.6}
+.rs{padding:8px 10px;border-radius:10px;margin-bottom:8px;background:rgba(255,255,255,.04)}
+.rs.on{background:rgba(255,255,255,.12);outline:1px solid var(--accent)}
+.tablewrap{overflow-x:auto}
+table.board{width:100%;border-collapse:collapse;font-size:13px}
+table.board th,table.board td{padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.14);text-align:center;white-space:nowrap}
+table.board td:first-child{text-align:left}
+.form{display:flex;flex-direction:column;gap:12px;padding:12px 14px 28px;overflow-y:auto}
+.lbl{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700}
+.txt{min-height:44px;padding:8px 12px;border-radius:var(--btnr);border:1.5px solid var(--frame);background:var(--panel);width:100%}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.cpu-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;background:var(--panel);padding:6px 10px;border-radius:12px;border:1px solid var(--frame)}
+.rule{display:flex;align-items:center;gap:10px;padding:10px;background:var(--panel);border-radius:12px;border:1px solid var(--frame);min-height:52px;font-size:14px}
+.rule input{width:24px;height:24px;flex:none}
+.rule small{display:block;opacity:.8;font-size:12px;margin-top:2px}
+.rule.dis{opacity:.45}
+.code{height:84px;font-size:11px;word-break:break-all;resize:none}
+
+.title-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:30px 20px;text-align:center}
+.title-screen .btn.big{flex:none;width:270px;max-width:100%;min-height:52px;white-space:nowrap}
+.logo{font-size:44px;font-weight:700;letter-spacing:.2em;color:var(--accent);text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.fan{position:relative;width:170px;height:120px}
+.fan .card{position:absolute;left:57px;top:8px}
+.fan .card:nth-child(1){transform:translateX(-42px) rotate(-18deg)}
+.fan .card:nth-child(2){transform:rotate(0deg)}
+.fan .card:nth-child(3){transform:translateX(42px) rotate(18deg)}
+
+/* ---------- カード ---------- */
+.card{position:relative;isolation:isolate;flex:none;width:56px;height:80px;border-radius:var(--radius);background:var(--card-face);color:var(--ink-b);box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),inset 0 -3px 0 rgba(0,0,0,.08),0 2px 2px rgba(0,0,0,.25),0 8px 14px rgba(0,0,0,.35);transition:transform .15s ease,filter .15s,box-shadow .15s;user-select:none;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;background:var(--paper-tex)}
+.card.red{color:var(--ink-r)}
+/* 札の表面の質感（全ての札・テーマ共通） */
+:root{--paper-tex:radial-gradient(circle at 30% 18%,rgba(255,255,255,.75),transparent 55%),repeating-linear-gradient(35deg,rgba(90,60,20,.03) 0 1px,transparent 1px 4px)}
+.card .ix{position:absolute;display:flex;flex-direction:column;align-items:center;line-height:1;font-weight:700;font-size:12px;z-index:2}
+.card .tl{top:4px;left:4px}
+.card .br{bottom:4px;right:4px;transform:rotate(180deg)}
+.card .ix small{font-size:10px;margin-top:1px}
+.card .pp{position:absolute;transform:translate(-50%,-50%);font-size:13px;line-height:1;z-index:1;text-shadow:0 1px 0 rgba(255,255,255,.6),0 2px 3px rgba(0,0,0,.2)}
+.card .pp.flip{transform:translate(-50%,-50%) rotate(180deg)}
+.card .pp.dense{font-size:11px}
+.card .pp.big{left:50%;top:50%;font-size:30px}
+.card .panel{position:absolute;left:8px;right:8px;top:22px;bottom:22px;border:1.5px solid currentColor;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:1}
+.card .panel i{font-style:normal;font-size:26px;line-height:1;text-shadow:0 1px 0 rgba(255,255,255,.6),0 2px 3px rgba(0,0,0,.2)}
+.card .jt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
+.card .jt b{font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:800;letter-spacing:.06em;color:inherit}
+.hand .card:not(:last-child) .pp,.hand .card:not(:last-child) .panel,.fcards .card:not(:last-child) .pp,.fcards .card:not(:last-child) .panel{display:none}
+.card.back{background:var(--back)}
+.card.back::before{display:none}
+.card.back::after{content:"";position:absolute;inset:4px;border-radius:calc(var(--radius) - 3px);border:1px solid rgba(255,255,255,.35)}
+.card.sel{transform:translateY(-14px);box-shadow:0 0 0 2px var(--accent2),0 0 14px var(--accent2),0 12px 18px rgba(0,0,0,.4)}
+.card.dim{filter:brightness(.6) saturate(.5)}
+.card.hint{box-shadow:0 0 0 2px var(--accent),0 0 12px var(--accent),0 8px 14px rgba(0,0,0,.35)}
+
+.hand{display:flex;align-items:flex-end;overflow-x:auto;overflow-y:hidden;padding:20px 16px 12px 14px;min-height:124px;-webkit-overflow-scrolling:touch}
+.hand .card{margin-left:-24px}
+.hand .card:first-child{margin-left:0}
+.hand.deal .card{animation:dealIn .32s ease-out both}
+.exh{min-height:110px;padding-left:0}
+
+.opps{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;padding:6px 10px}
+.opp{background:var(--panel);border:1px solid var(--frame);border-radius:12px;padding:6px 8px;min-width:0;transition:box-shadow .2s}
+.opp.turn{animation:pulse 1.4s infinite}
+.oname{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.olv{font-size:11px;opacity:.75}
+.ostack{display:flex;align-items:center;height:42px;margin-top:4px}
+.ostack .card{width:26px;height:38px;margin-left:-14px;border-radius:4px}
+.ostack .card:first-child{margin-left:0}
+.ocount{font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden}
+
+.field-wrap{padding:4px 10px}
+.field{min-height:116px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:18px;background:rgba(0,0,0,.14);border:1px dashed rgba(255,255,255,.18)}
+.fowner{font-size:12px;opacity:.9}
+.fcards{display:flex;justify-content:center}
+.fcards .card{margin-left:-14px}
+.fcards .card:first-child{margin-left:0}
+.field.fx .card{animation:slideIn .28s ease-out both}
+
+.me{padding:4px 0 0}
+.me-h{display:flex;align-items:center;gap:8px;padding:0 14px;font-size:14px;flex-wrap:wrap}
+.actions{display:flex;gap:10px;padding:8px 12px 18px;margin-top:auto}
+
+@keyframes slideIn{from{transform:translateY(46px);opacity:0}to{transform:none;opacity:1}}
+@keyframes dealIn{from{transform:translateY(-120px) scale(.6);opacity:0}to{transform:none;opacity:1}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--accent)}50%{box-shadow:0 0 0 7px rgba(255,255,255,0)}}
+@keyframes telop{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}25%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  .card,.field.fx .card,.hand.deal .card,.opp.turn{animation:none!important}
+  .telop{animation:none;opacity:1}
+}
+</style>
+</head>
+<body data-theme="casino">
+<div id="app"></div>
+<div id="overlay" class="overlay hidden"></div>
+<div id="telop" class="telop hidden"></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/* =====================================================================
+ * 1. ゲームロジック（DOM非依存の純粋な関数群）
+ *    ルール判定・状態遷移はすべてここで行う。UIは状態を描画するだけ。
+ * ===================================================================== */
+const Logic = (() => {
+  const SUITS = ['S', 'H', 'D', 'C'];
+  const SUIT_SYM = { S: '♠', H: '♥', D: '♦', C: '♣', X: '★' };
+  const JOKER = 16;
+  const LABEL = { 11: 'J', 12: 'Q', 13: 'K', 14: 'A', 15: '2' };
+  const ROLE_NAMES = ['大富豪', '富豪', '平民', '貧民', '大貧民'];
+
+  const label = n => LABEL[n] || String(n);
+  const isJoker = c => c.num === JOKER;
+  const fail = reason => ({ ok: false, reason });
+  const removeCards = (hand, cards) => { const ids = new Set(cards.map(c => c.id)); return hand.filter(c => !ids.has(c.id)); };
+  const kindText = (kind, len, rev) => rev ? `${len}枚の階段革命`
+    : kind === 'stair' ? `${len}枚の階段` : len === 1 ? '1枚' : `${len}枚の組`;
+
+  function createDeck() {
+    const deck = []; let id = 0;
+    for (const s of SUITS) for (let n = 3; n <= 15; n++) deck.push({ id: id++, suit: s, num: n });
+    deck.push({ id: id++, suit: 'X', num: JOKER }, { id: id++, suit: 'X', num: JOKER });
+    return deck;
+  }
+  function shuffle(a, rng = Math.random) {
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  function dealHands(n) {
+    const d = shuffle(createDeck());
+    const hands = Array.from({ length: n }, () => []);
+    d.forEach((c, i) => hands[i % n].push(c));
+    return hands;
+  }
+  function ctxOf(state) {
+    return { rules: state.rules, revolution: state.revolution, elevenBack: state.elevenBack,
+      field: state.field ? state.field.cards : null, fieldInfo: state.field };
+  }
+  // 実効的な強さ。革命と11バックの二重適用で元に戻る。ジョーカーは影響を受けない。
+  function cardPower(c, ctx) {
+    if (isJoker(c)) return 100;
+    return (ctx.revolution !== ctx.elevenBack) ? 18 - c.num : c.num;
+  }
+  const numPower = (n, ctx) => cardPower({ suit: 'S', num: n }, ctx);
+  // 階段の候補。ジョーカーは範囲の中で不足した数字を埋める（ワイルド）。候補は数字の範囲 {lo, hi}。
+  function stairWindows(cards) {
+    const nat = cards.filter(c => !isJoker(c));
+    const L = cards.length;
+    if (L < 3 || nat.length === 0) return [];
+    const suit = nat[0].suit;
+    if (nat.some(c => c.suit !== suit)) return [];
+    const nums = nat.map(c => c.num);
+    if (new Set(nums).size !== nums.length) return [];
+    const out = [];
+    for (let lo = 3; lo + L - 1 <= 15; lo++) {
+      const hi = lo + L - 1;
+      if (Math.min(...nums) >= lo && Math.max(...nums) <= hi) out.push({ lo, hi, suit });
+    }
+    return out;
+  }
+  function isStairShape(cards) { return stairWindows(cards).length > 0; }
+  // 両方ONのときは mode で選ぶ。片方だけONならそれに従う。
+  function resolveStairMode(mode, r) {
+    if (r.stairs && r.stairRev) return mode;
+    if (r.stairs) return 'normal';
+    if (r.stairRev) return 'rev';
+    return null;
+  }
+  // 手の種類判定（場の制約は含めない）。effNums はジョーカーを埋めた後の数字。
+  function playInfo(cards, ctx, mode = 'normal') {
+    const r = ctx.rules;
+    if (!cards.length) return fail('札を選んでください');
+    const nat = cards.filter(c => !isJoker(c));
+    if (!r.wild && nat.length && nat.length < cards.length) return fail('ジョーカーは、ワイルドをONにしたときだけ数字の代わりに使えます');
+    // 数字の組（ジョーカーは同じ数字に合わせて入る）
+    if (!nat.length || nat.every(c => c.num === nat[0].num)) {
+      if (mode === 'rev') return fail('階段革命は同じマークの連続4枚以上で出してください');
+      if (!nat.length) return { ok: true, kind: 'set', len: cards.length, power: 100, rev: false, effNums: [] };
+      return { ok: true, kind: 'set', len: cards.length, power: cardPower(nat[0], ctx), rev: false,
+        effNums: Array(cards.length).fill(nat[0].num) };
+    }
+    if (cards.length < 3) return fail('2枚は同じ数字の組で出してください');
+    if (new Set(nat.map(c => c.suit)).size > 1) return fail('階段は同じマークで出してください');
+    const eff = resolveStairMode(mode, r);
+    if (!eff) return fail('階段はOFFです。同じ数字の組で出してください');
+    if (eff === 'rev' && cards.length < 4) return fail('階段革命は同じマークの連続4枚以上で出してください');
+    const wins = stairWindows(cards);
+    if (!wins.length) return fail('階段は連続する数字で出してください');
+    let best = null;
+    for (const w of wins) {
+      let power = -Infinity;
+      for (let n = w.lo; n <= w.hi; n++) power = Math.max(power, numPower(n, ctx));
+      if (!best || power > best.power) best = { ...w, power };
+    }
+    const effNums = [];
+    for (let n = best.lo; n <= best.hi; n++) effNums.push(n);
+    return { ok: true, kind: 'stair', len: cards.length, power: best.power, rev: eff === 'rev', effNums };
+  }
+  // 場に対して出せるかの総合判定。場の情報は ctx.fieldInfo（kind, len, power, rev）。
+  function evaluatePlay(cards, ctx, mode = 'normal') {
+    const p = playInfo(cards, ctx, mode);
+    if (!p.ok) return p;
+    const f = ctx.field, fi = ctx.fieldInfo;
+    // 場の札の強さは、今の順番（革命・11バックの状態）で計算し直す。保存された値は古い順番のことがあるため使わない。
+    const fieldPower = f && f.length && fi ? (playInfo(f, ctx, fi.rev ? 'rev' : 'normal').power) : null;
+    if (f && f.length && fi && fi.unbeatable) return fail('スペードの3には勝てません。この場は流れるまで誰も勝てません');
+    if (ctx.rules.spade3Joker && f && f.length === 1 && isJoker(f[0]) && fi && !fi.rev && cards.length === 1 && isSpadeThree(cards[0]))
+      return { ...p, unbeatable: true };
+    if (p.rev) {
+      // 階段革命は、場が空（自分のターン）か、同じ枚数でより強い階段革命のときだけ。場は流さない。
+      if (!f || !f.length) return p;
+      if (fi && fi.rev && fi.len === p.len && p.power > fieldPower) return p;
+      return fail('階段革命は、場が空のときか、同じ枚数でより強い階段革命のときだけ出せます');
+    }
+    if (!f || !f.length) return p;
+    if (fi.rev) return fail('場が階段革命です。同じ枚数の階段革命で応じてください');
+    if (ctx.rules.bind) {
+      const suits = new Set(f.filter(c => !isJoker(c)).map(c => c.suit));
+      if (suits.size && cards.some(c => !isJoker(c) && !suits.has(c.suit)))
+        return fail('しばり中です。場と同じマークの札を出してください');
+    }
+    if (p.kind !== fi.kind || p.len !== fi.len) return fail('場と同じ枚数・形の手で出してください');
+    if (p.power <= fieldPower) return fail('場の札より強い札を出してください');
+    return p;
+  }
+  function combos(arr, k) {
+    const out = [];
+    const rec = (start, cur) => {
+      if (cur.length === k) { out.push(cur.slice()); return; }
+      for (let i = start; i < arr.length; i++) { cur.push(arr[i]); rec(i + 1, cur); cur.pop(); }
+    };
+    rec(0, []);
+    return out;
+  }
+  // 手札から出せる全ての手。{cards, rev} の配列（CPUとハイライトで使用）
+  function legalPlays(hand, ctx) {
+    const out = [];
+    const add = cards => {
+      const a = evaluatePlay(cards, ctx, 'normal');
+      if (a.ok) out.push({ cards, rev: !!a.rev });
+      if (ctx.rules.stairs && ctx.rules.stairRev && cards.length >= 4 && evaluatePlay(cards, ctx, 'rev').ok)
+        out.push({ cards, rev: true });
+    };
+    const nat = hand.filter(c => !isJoker(c));
+    const jokers = hand.filter(isJoker);
+    // 数字の組（ワイルドONならジョーカーで不足分を埋める）
+    const byNum = new Map();
+    nat.forEach(c => { if (!byNum.has(c.num)) byNum.set(c.num, []); byNum.get(c.num).push(c); });
+    for (const arr of byNum.values()) {
+      for (let m = 1; m <= Math.min(arr.length, 4); m++) {
+        combos(arr, m).forEach(base => {
+          for (let jk = 0; jk <= Math.min(jokers.length, 4 - m); jk++) add(base.concat(jokers.slice(0, jk)));
+        });
+      }
+    }
+    for (let jk = 1; jk <= Math.min(jokers.length, 2); jk++) add(jokers.slice(0, jk));
+    // 階段（同じマークの連続。抜けはジョーカーで埋める）
+    if (ctx.rules.stairs || ctx.rules.stairRev) {
+      for (const s of SUITS) for (let L = 3; L <= 13; L++) for (let lo = 3; lo + L - 1 <= 15; lo++) {
+        const hi = lo + L - 1;
+        const cs = nat.filter(c => c.suit === s && c.num >= lo && c.num <= hi);
+        const need = L - cs.length;
+        if (!cs.length || need > jokers.length) continue;
+        add(cs.concat(jokers.slice(0, need)));
+      }
+    }
+    return out.filter(x => !bansStrongFinish(x.cards, hand, ctx));
+  }
+  function pickStrongest(hand, count, ctx) {
+    // ジョーカーも最強の札として扱う（強い順に並べるので、ジョーカーが先に選ばれる）
+    return hand.slice().sort((a, b) => cardPower(b, ctx) - cardPower(a, ctx)).slice(0, count);
+  }
+
+  function roleForRank(rank, n) {
+    if (n === 3) return ['大富豪', '平民', '大貧民'][rank - 1];
+    if (rank === 1) return '大富豪';
+    if (rank === 2) return '富豪';
+    if (rank === n) return '大貧民';
+    if (rank === n - 1) return '貧民';
+    return '平民';
+  }
+  function leaderIndex(state) {
+    // 「毎回大富豪から始める」がONで大富豪がいれば、その人から始める。それ以外は♦3の持ち主から。
+    if (state.rules.richStart) {
+      const rich = state.players.find(p => p.role === '大富豪');
+      if (rich) return rich.id;
+    }
+    const p = state.players.find(p => p.hand.some(c => c.suit === 'D' && c.num === 3));
+    return p ? p.id : 0;
+  }
+  function nextIndex(state, from) {
+    const n = state.players.length;
+    const owner = state.field ? state.field.owner : -1;
+    for (let k = 1; k <= n; k++) {
+      const i = (from + k) % n;
+      const p = state.players[i];
+      if (p.finished || state.passed[i] || i === owner) continue;
+      return i;
+    }
+    return from;
+  }
+  // 7渡しの相手：出した人の次の席で、まだ上がっていないプレイヤー
+  function nextSeat(state, from) {
+    const n = state.players.length;
+    for (let k = 1; k < n; k++) { const i = (from + k) % n; if (!state.players[i].finished) return i; }
+    return null;
+  }
+  function sevenTargets(state, from) {
+    const i = nextSeat(state, from);
+    return i == null ? [] : [state.players[i]];
+  }
+
+  function startGame(series) {
+    const n = series.players.length;
+    const hands = dealHands(n);
+    const players = series.players.map((p, i) => ({
+      id: i, name: p.name, isHuman: p.isHuman, level: p.level,
+      hand: hands[i], finished: false, rank: null, role: p.role || null,
+    }));
+    const state = {
+      players, rules: { ...series.rules }, revolution: false, elevenBack: false, revCount: 0,
+      field: null, passed: Array(n).fill(false), turn: 0, finishOrder: [], over: false,
+      phase: 'play', played: [], exchanges: [], pendingSeven: null,
+      playId: 0, recorded: false, fallenId: null, pendingDiscard: null,
+    };
+    if (series.rules.exchange && players.every(p => p.role)) {
+      const pairs = [['大貧民', '大富豪', 2]];
+      if (n >= 4) pairs.push(['貧民', '富豪', 1]);
+      for (const [g, r, count] of pairs) {
+        const giver = players.find(p => p.role === g), recv = players.find(p => p.role === r);
+        if (!giver || !recv) continue;
+        state.exchanges.push({ giver: giver.id, receiver: recv.id, count, stage: 'give', given: [], returned: [] });
+      }
+      if (state.exchanges.length) state.phase = 'exchange';
+    }
+    state.turn = leaderIndex(state);
+    return state;
+  }
+  function pendingExchange(state) { return state.exchanges.find(e => e.stage !== 'done') || null; }
+  function exchangeGive(state, ex, cards) {
+    if (ex.stage !== 'give') return fail('交換の順番ではありません');
+    const giver = state.players[ex.giver], recv = state.players[ex.receiver];
+    if (cards.length !== ex.count) return fail(`${ex.count}枚選んでください`);
+    if (new Set(cards.map(c => c.id)).size !== cards.length) return fail('同じ札は選べません');
+    const ids = new Set(giver.hand.map(c => c.id));
+    if (cards.some(c => !ids.has(c.id))) return fail('手札から選んでください');
+    giver.hand = removeCards(giver.hand, cards);
+    recv.hand = recv.hand.concat(cards);
+    ex.given = cards.slice();
+    ex.stage = 'return';
+    return { ok: true };
+  }
+  function exchangeReturn(state, ex, cards) {
+    if (ex.stage !== 'return') return fail('交換の順番ではありません');
+    const giver = state.players[ex.giver], recv = state.players[ex.receiver];
+    if (cards.length !== ex.count) return fail(`${ex.count}枚選んでください`);
+    if (new Set(cards.map(c => c.id)).size !== cards.length) return fail('同じ札は選べません');
+    const ids = new Set(recv.hand.map(c => c.id));
+    if (cards.some(c => !ids.has(c.id))) return fail('手札から選んでください');
+    recv.hand = removeCards(recv.hand, cards);
+    giver.hand = giver.hand.concat(cards);
+    ex.returned = cards.slice();
+    ex.stage = 'done';
+    if (!pendingExchange(state)) { state.phase = 'play'; state.turn = leaderIndex(state); }
+    return { ok: true };
+  }
+
+  const isSpadeThree = c => c.suit === 'S' && c.num === 3;
+  function isStrongest(c, ctx) {
+    if (isJoker(c)) return true;
+    if (ctx.rules.spade3Joker && isSpadeThree(c)) return true;
+    const top = Math.max(...Array.from({ length: 13 }, (_, i) => numPower(i + 3, ctx)));
+    return numPower(c.num, ctx) === top;
+  }
+  // ルール「最強の札で上がり禁止」がONのとき、最強の札を含み手札を出し切る手（上がり）は禁止
+  const bansStrongFinish = (cards, hand, ctx) =>
+    !!ctx.rules.noStrongFinish && cards.length === hand.length && cards.some(c => isStrongest(c, ctx));
+  // 上がれないまま残った人を最下位にする（ゲーム終了時に順位を付ける）
+  function finalizeStuck(state) {
+    state.players.filter(p => p.stuck && p.rank == null).forEach(p => {
+      p.rank = state.finishOrder.length + 1;
+      state.finishOrder.push(p.id);
+    });
+  }
+  // 自分の番で出せる手が1つもない（残りが上がり禁止の札だけ）なら、その人は上がれないまま残る
+  function stuckCheck(state) {
+    if (state.over || state.phase !== 'play' || state.field) return false;
+    const p = state.players[state.turn];
+    if (!p || p.finished || !p.hand.length) return false;
+    if (legalPlays(p.hand, ctxOf(state)).length) return false;
+    p.finished = true; p.stuck = true;
+    const active = state.players.filter(x => !x.finished);
+    if (active.length <= 1) {
+      if (active.length === 1) {
+        const last = active[0];
+        last.finished = true; last.rank = state.finishOrder.length + 1; state.finishOrder.push(last.id);
+      }
+      state.over = true;
+      finalizeStuck(state);
+    } else state.turn = nextIndex(state, p.id);
+    return true;
+  }
+  function finishPlayer(state, idx, ev) {
+    const p = state.players[idx];
+    p.finished = true;
+    p.rank = state.finishOrder.length + 1;
+    state.finishOrder.push(idx);
+    ev.push({ type: 'finish', idx, rank: p.rank });
+    const active = state.players.filter(x => !x.finished);
+    if (active.length <= 1) {
+      if (active.length === 1) {
+        const last = active[0];
+        last.finished = true;
+        last.rank = state.finishOrder.length + 1;
+        state.finishOrder.push(last.id);
+        ev.push({ type: 'finish', idx: last.id, rank: last.rank });
+      }
+      state.over = true;
+      finalizeStuck(state);
+    }
+  }
+  function clearField(state) {
+    state.field = null;
+    state.elevenBack = false;
+    state.passed.fill(false);
+  }
+  function finishTurn(state, idx, continueSelf) {
+    if (state.over) return;
+    const p = state.players[idx];
+    state.turn = (continueSelf && !p.finished) ? idx : nextIndex(state, idx);
+  }
+  function toggleRevolution(state, ev, kind) {
+    state.revolution = !state.revolution;
+    state.revCount++;
+    ev.push({ type: kind, on: state.revolution });
+  }
+
+  // 10捨て：10の枚数ぶん（手札が足りなければその分まで）、手札から捨てる札を選ぶ。手札がなければ何もしない。
+  function startDiscardOrTurn(state, idx, tens, continueSelf) {
+    const p = state.players[idx];
+    if (tens > 0 && !p.finished && p.hand.length > 0) {
+      state.phase = 'discard';
+      state.pendingDiscard = { from: idx, remaining: Math.min(tens, p.hand.length), continueSelf };
+      return;
+    }
+    finishTurn(state, idx, continueSelf);
+  }
+  // 捨て札：選んだ札を手札から外し、場には出さず、ゲームから外す（CPUの計算では見えた札として扱う）
+  // 必要枚数：残り枚数と手札枚数の小さい方
+  function discardNeed(state, idx) {
+    const d = state.pendingDiscard;
+    return d ? Math.min(d.remaining, state.players[idx].hand.length) : 0;
+  }
+  function discardCards(state, idx, cardIds) {
+    const d = state.pendingDiscard;
+    if (!d || state.phase !== 'discard' || d.from !== idx) return fail('捨て札の処理中ではありません');
+    const p = state.players[idx];
+    const need = discardNeed(state, idx);
+    if (cardIds.length !== need) return fail(`${need}枚選んでください`);
+    if (new Set(cardIds).size !== cardIds.length) return fail('同じ札は選べません');
+    const cards = p.hand.filter(c => cardIds.includes(c.id));
+    if (cards.length !== cardIds.length) return fail('手札から選んでください');
+    p.hand = removeCards(p.hand, cards);
+    state.played.push(...cards);
+    state.pendingDiscard = null;
+    state.phase = 'play';
+    const ev = [{ type: 'discard', idx, n: cards.length }];
+    if (p.hand.length === 0) finishPlayer(state, idx, ev);
+    if (!state.over) finishTurn(state, idx, d.continueSelf);
+    return { ok: true, events: ev };
+  }
+  function applyPlay(state, idx, cards, mode = 'normal') {
+    const ctx = ctxOf(state);
+    const info = evaluatePlay(cards, ctx, mode);
+    if (!info.ok) return info;
+    if (bansStrongFinish(cards, state.players[idx].hand, ctx)) return fail('最強のカードでは上がれません');
+    const p = state.players[idx];
+    const nums = info.effNums;
+    p.hand = removeCards(p.hand, cards);
+    state.played.push(...cards);
+    state.playId++;
+    state.passed.fill(false);
+    state.field = { cards: cards.slice(), owner: idx, kind: info.kind, len: info.len, rev: info.rev, power: info.power, unbeatable: !!info.unbeatable };
+    const ev = [{ type: 'play', idx, cards: cards.slice(), kind: info.kind, len: info.len, rev: info.rev }];
+    if (info.unbeatable) ev.push({ type: 'spade3' });
+
+    if (info.rev) toggleRevolution(state, ev, 'stairRev');
+    else if (info.kind === 'set' && info.len === 4 && state.rules.revolution) toggleRevolution(state, ev, 'revolution');
+
+    if (nums.includes(11) && state.rules.elevenBack && !state.elevenBack) {
+      state.elevenBack = true;
+      ev.push({ type: 'eleven' });
+    }
+
+    // 階段革命は場を流さない。それ以外は8切りで流す。10捨ては場を流さず、10の枚数ぶん捨て札を選ぶ。
+    let flush = false;
+    let tens = 0;
+    if (!info.rev) {
+      if (state.rules.eightCut && nums.includes(8)) { flush = true; ev.push({ type: 'eight' }); }
+      tens = state.rules.tenDump ? nums.filter(n => n === 10).length : 0;
+      if (tens) ev.push({ type: 'ten', n: tens });
+    }
+    if (flush) clearField(state);
+    const continueSelf = flush;
+
+    if (p.hand.length === 0) finishPlayer(state, idx, ev);
+    if (state.over) return { ok: true, events: ev };
+
+    const sevens = nums.filter(n => n === 7).length;
+    if (state.rules.sevenPass && sevens > 0 && p.hand.length > 0 && sevenTargets(state, idx).length > 0) {
+      state.phase = 'seven';
+      state.pendingSeven = { from: idx, remaining: Math.min(sevens, p.hand.length), continueSelf: continueSelf && !p.finished, tens };
+      ev.push({ type: 'sevenStart', idx });
+      return { ok: true, events: ev };
+    }
+    startDiscardOrTurn(state, idx, tens, continueSelf);
+    return { ok: true, events: ev };
+  }
+  function applyPass(state, idx) {
+    if (!state.field) return fail('場が出ていないのでパスできません');
+    state.passed[idx] = true;
+    const ev = [{ type: 'pass', idx }];
+    const owner = state.field.owner;
+    const remaining = state.players.filter(p => !p.finished && p.id !== owner && !state.passed[p.id]);
+    if (remaining.length === 0) {
+      clearField(state);
+      ev.push({ type: 'flush' });
+      state.turn = state.players[owner].finished ? nextIndex(state, owner) : owner;
+    } else {
+      state.turn = nextIndex(state, idx);
+    }
+    return { ok: true, events: ev };
+  }
+  // 必要枚数：残り枚数と手札枚数の小さい方（手札が足りないときはある分だけ渡す）
+  function sevenNeed(state) {
+    const s = state.pendingSeven;
+    return s ? Math.min(s.remaining, state.players[s.from].hand.length) : 0;
+  }
+  // 7渡し：選んだ枚数ぶんの札をまとめて、次の手番の上がっていないプレイヤーに渡す（渡す相手は1人に決まる）
+  function giveSevenCards(state, cardIds) {
+    const s = state.pendingSeven;
+    if (!s || state.phase !== 'seven') return fail('7渡しの処理中ではありません');
+    const from = state.players[s.from];
+    const need = sevenNeed(state);
+    if (cardIds.length !== need) return fail(`${need}枚選んでください`);
+    if (new Set(cardIds).size !== cardIds.length) return fail('同じ札は選べません');
+    const cards = from.hand.filter(c => cardIds.includes(c.id));
+    if (cards.length !== cardIds.length) return fail('手札から選んでください');
+    const targets = sevenTargets(state, s.from);
+    if (!targets.length) return fail('渡せる相手がいません');
+    const target = targets[0];
+    from.hand = removeCards(from.hand, cards);
+    target.hand = target.hand.concat(cards);
+    const ev = [{ type: 'give', from: s.from, to: target.id, n: cards.length }];
+    completeSeven(state, ev);
+    return { ok: true, events: ev };
+  }
+  function completeSeven(state, ev) {
+    const s = state.pendingSeven;
+    state.pendingSeven = null;
+    state.phase = 'play';
+    const from = state.players[s.from];
+    if (!from.finished && from.hand.length === 0) finishPlayer(state, s.from, ev);
+    if (!state.over) startDiscardOrTurn(state, s.from, s.tens, s.continueSelf);
+  }
+
+  // 役の割り当て。順位どおりに役を決める。都落ちONで、前回の大富豪が今回1位でなければ大貧民に落とす。
+  function assignRoles(state) {
+    const n = state.players.length;
+    const order = [...state.players].sort((a, b) => a.rank - b.rank);
+    state.fallenId = null;
+    if (state.rules.outcast) {
+      const fallen = state.players.find(p => p.role === '大富豪');
+      if (fallen && fallen.rank !== 1) {
+        state.fallenId = fallen.id;
+        order.splice(order.indexOf(fallen), 1);
+        order.push(fallen);
+      }
+    }
+    order.forEach((p, i) => { p.role = roleForRank(i + 1, n); });
+    return state.players.map(p => p.role);
+  }
+
+  return {
+    SUITS, SUIT_SYM, ROLE_NAMES, label, isJoker, kindText, createDeck, shuffle,
+    cardPower, isStairShape, playInfo, evaluatePlay, legalPlays, ctxOf, nextSeat, stuckCheck,
+    startGame, pendingExchange, pickStrongest, exchangeGive, exchangeReturn,
+    sevenTargets, sevenNeed, discardNeed, giveSevenCards, applyPlay, applyPass, assignRoles, leaderIndex, discardCards,
+    roleForRank, removeCards,
+  };
+})();
+
+/* =====================================================================
+ * 2. CPU思考。自分の手札と公開情報だけを受け取る。他人の手札は参照しない。
+ * ===================================================================== */
+const CPU = (() => {
+  const L = Logic;
+
+  function view(state, idx) {
+    return {
+      hand: state.players[idx].hand.slice(),
+      rules: state.rules,
+      revolution: state.revolution,
+      elevenBack: state.elevenBack,
+      field: state.field ? state.field.cards.slice() : null,
+      fieldInfo: state.field ? { kind: state.field.kind, len: state.field.len, rev: state.field.rev, power: state.field.power, unbeatable: state.field.unbeatable } : null,
+      others: state.players.filter(p => p.id !== idx).map(p => ({
+        id: p.id, count: p.hand.length, finished: p.finished, passed: state.passed[p.id],
+      })),
+      played: state.played.slice(),
+      nextSeat: L.nextSeat(state, idx),
+    };
+  }
+  function unseen(v) {
+    const seen = new Set([...v.played.map(c => c.id), ...v.hand.map(c => c.id)]);
+    return L.createDeck().filter(c => !seen.has(c.id));
+  }
+  const ctxOf = v => ({ rules: v.rules, revolution: v.revolution, elevenBack: v.elevenBack, field: v.field, fieldInfo: v.fieldInfo });
+  const flushes = (cards, rules, rev) => !rev && !!rules.eightCut && cards.some(c => c.num === 8);
+  const rnd = a => a[Math.floor(Math.random() * a.length)];
+
+  function strongPick(v, ctx, items, lead) {
+    const pool = unseen(v);
+    const bestOf = cards => cards.reduce((a, b) => (L.cardPower(b, ctx) > L.cardPower(a, ctx) ? b : a));
+    const isTop = c => { const pw = L.cardPower(c, ctx); return !pool.some(u => L.cardPower(u, ctx) > pw); };
+    const urgent = v.others.some(o => !o.finished && o.count <= 2);
+    if (lead) {
+      items.forEach(x => {
+        x.score = x.n * 2 - x.p * 0.3 + (isTop(bestOf(x.cards)) ? 3 : 0) + (x.rev ? 1 : 0) + (x.flush ? 2 : 0);
+      });
+      items.sort((a, b) => b.score - a.score);
+      return items[0];
+    }
+    const normals = items.filter(x => !x.rev).sort((a, b) => a.p - b.p);
+    if (!normals.length) return v.hand.length <= 3 ? items.find(x => x.rev) : null;
+    const fieldInfo = v.fieldInfo || { power: 0 };
+    const flushOpt = normals.find(x => x.flush && fieldInfo.power >= 13);
+    if (flushOpt) return flushOpt;
+    if (!urgent && normals[0].p >= 15 && v.hand.length > 3) return null;
+    return normals[0];
+  }
+
+  // 戻り値: {cards, rev} または null（パス）
+  function choosePlay(v, level) {
+    const ctx = ctxOf(v);
+    const plays = L.legalPlays(v.hand, ctx);
+    if (!plays.length) return null;
+    const lead = !v.field;
+    const items = plays.map(x => ({
+      cards: x.cards, rev: x.rev, n: x.cards.length,
+      p: L.playInfo(x.cards, ctx, x.rev ? 'rev' : 'normal').power,
+      flush: flushes(x.cards, v.rules, x.rev),
+    }));
+    let pick = null;
+    if (level === '弱い') {
+      pick = (!lead && Math.random() < 0.2) ? null : rnd(items);
+    } else if (level === '普通') {
+      const normals = items.filter(x => !x.rev);
+      if (lead) {
+        const pool = normals.length ? normals : items;
+        pool.sort((a, b) => (a.p - a.n * 2) - (b.p - b.n * 2));
+        pick = pool[0];
+      } else {
+        normals.sort((a, b) => a.p - b.p);
+        if (normals.length && !(normals[0].p >= 15 && v.hand.length > 3)) pick = normals[0];
+      }
+    } else {
+      pick = strongPick(v, ctx, items, lead);
+    }
+    if (!pick && lead) pick = items[0];
+    return pick ? { cards: pick.cards, rev: pick.rev } : null;
+  }
+
+  // 7渡し：弱い札から、枚数ぶん渡す（ジョーカーは最後）。戻り値: 渡す札のid
+  function chooseSevenCards(hand, count, ctx) {
+    return hand.slice().sort((a, b) => L.cardPower(a, ctx) - L.cardPower(b, ctx)).slice(0, count).map(c => c.id);
+  }
+
+  // 戻り値: 返す札の配列
+  function chooseReturn(hand, count, level, ctx) {
+    const cands = hand.slice();
+    // 弱い札から返す。ジョーカーは最強なので、返す札は最後に回す
+    if (level === '弱い') { const nj = L.shuffle(cands.filter(c => !L.isJoker(c))); return nj.concat(cands.filter(c => L.isJoker(c))).slice(0, count); }
+    const sib = c => hand.filter(x => x.num === c.num).length;
+    const cost = c => L.cardPower(c, ctx) + (level === '強い' ? (sib(c) - 1) * 3 : 0);
+    return cands.slice().sort((a, b) => cost(a) - cost(b)).slice(0, count);
+  }
+  // 10捨て：弱い札から順に捨てる（ジョーカーは最後）。戻り値: 捨てる札のid
+  function chooseDiscard(hand, count, ctx) {
+    return hand.slice().sort((a, b) => L.cardPower(a, ctx) - L.cardPower(b, ctx)).slice(0, count).map(c => c.id);
+  }
+  return { view, choosePlay, chooseSevenCards, chooseReturn, chooseDiscard };
+})();
+
+/* =====================================================================
+ * 3. 画面（UI）。状態を描画し、操作をLogicへ渡すだけ。
+ * ===================================================================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const CPU_NAMES = ['田中 健太', '佐藤 美咲', '鈴木 翔太', '高橋 結衣', '伊藤 大輝', '渡辺 葵', '山本 蓮'];
+const LEVELS = ['弱い', '普通', '強い'];
+const THEMES = [['casino', '洋風カジノ'], ['wafu', '和風（花札）'], ['neon', 'ネオン'], ['forest', '森・木の温もり']];
+const ROLE_ORDER = Logic.ROLE_NAMES;
+
+const RULE_DEFS = [
+  { key: 'revolution', name: '革命', desc: '同じ数字の4枚組で革命。強さの順が逆転（もう一度で戻る）' },
+  { key: 'stairs', name: '階段（通常）', desc: '同じマークで連続する3枚以上を、場の制約に従って出す' },
+  { key: 'stairRev', name: '階段革命', desc: '同じマークで連続する4枚以上。場が空の自分のターン、または同じ枚数でより強い階段革命に対してのみ出せる。革命が起き、場は流れない' },
+  { key: 'wild', name: 'ジョーカーのワイルド化', desc: 'ONでジョーカーが足りない数字を埋め、組・階段・革命に一緒に出せる（ジョーカーだけの組は従来どおり）' },
+  { key: 'eightCut', name: '8切り', desc: '8を含む手で場が流れ、出した人が続けて出せる' },
+  { key: 'tenDump', name: '10捨て', desc: '10を含む手で、10の枚数ぶん手札から任意の札を捨てる（場は流れない）' },
+  { key: 'elevenBack', name: '11バック', desc: 'Jを含む手で、その場が流れるまで強さの順が逆転' },
+  { key: 'bind', name: 'しばり（マークしばり）', desc: '場と同じマークの札しか出せない（ジョーカーは例外）' },
+  { key: 'outcast', name: '都落ち', desc: '前回の大富豪が今回1位にならなければ大貧民に落ちる' },
+  { key: 'richStart', name: '毎回大富豪から始める', desc: '2回目以降も、ゲームの先手を♦3の持ち主ではなく大富豪にする（1回目は♦3の持ち主）' },
+  { key: 'sevenPass', name: '7渡し', desc: '7を出した枚数ぶん、次の手番の（上がっていない）プレイヤーへ、渡す札をまとめて選んで渡す' },
+  { key: 'spade3Joker', name: 'スペードの3がジョーカーに勝つ', desc: 'ジョーカー単体の場には、スペードの3だけが勝てる（唯一の札）。勝ったスペードの3には、場が流れるまで誰も勝てない' },
+  { key: 'noStrongFinish', name: '最強の札で上がり禁止', desc: '最強の札（ジョーカー、通常時の2、革命時の3、「スペードの3がジョーカーに勝つ」がONならスペードの3）を含む手で、手札を出し切って上がることはできない' },
+  { key: 'exchange', name: '大富豪交換', desc: '2回目以降の開始時に、大貧民・貧民が強い札（ジョーカーを含む）を大富豪・富豪に渡す' },
+  { key: 'exchangeChoose', name: '交換の札を自分で選ぶ', desc: '大富豪・富豪の人間が、大貧民・貧民の手札を見て受け取る札を自分で選べる（OFFは最強の札が自動で渡る）',
+    needs: r => r.exchange, off: '大富豪交換がONのときのみ表示', hideWhenOff: true },
+];
+const RULE_SECTIONS = [
+  { title: '基本の流れ', key: null, text: '場に出された手と同じ種類・枚数で、より強い手を出します。全員がパスすると場が流れ、最後に出した人が次の手を出せます。手札を出し切った順に上がり、最後の一人が大貧民です。最初の手番は♦3を持つ人です（「毎回大富豪から始める」がONのときは、2回目以降は大富豪から）。' },
+  { title: '強さの順', key: null, text: '3 < 4 < 5 < 6 < 7 < 8 < 9 < 10 < J < Q < K < A < 2 < ジョーカー。ジョーカーは革命や11バックの影響を受けません。' },
+  { title: '出し方', key: null, text: '1枚、または同じ数字の2〜4枚の組が出せます。ジョーカーは単独か、ジョーカー2枚のペアのみです（ワイルドONでは数字の代わりに組や階段に含められます）。' },
+  { title: '革命', key: 'revolution', text: '同じ数字の4枚組を出すと革命が起き、数字の強さ順が逆転します。もう一度革命すると元に戻ります。ジョーカーは逆転しません。' },
+  { title: '階段（通常）', key: 'stairs', text: '同じマークで連続する数字を3枚以上まとめて出せます。場に同じ枚数の階段が出ているときだけ、より強い階段で応じられます。通常どおり場の制約を受け、場は流れません。2はAの次として連続扱いです。' },
+  { title: '階段革命', key: 'stairRev', text: '同じマークで連続する4枚以上を、場が空の自分のターン、または同じ枚数でより強い階段革命に対してのみ出せます（しばりも無視）。出すと革命が起きます（「革命」ルールとは独立）。場は流れず、出された手がそのまま場に残るので、次の人は同じ枚数でより強い階段革命で応じます。ジョーカーはワイルドONのときだけ含められます。階段と両方ONのときは、出す前に「階段として出す」か「階段革命として出す」かを選べます。' },
+  { title: 'ジョーカーのワイルド化', key: 'wild', text: 'ONのとき、ジョーカーは足りない数字を埋めて、組・階段・階段革命・革命（同じ数字の4枚組）に一緒に出せます。ジョーカーだけの組は従来どおり単独かペアです。' },
+  { title: '8切り', key: 'eightCut', text: '8を含む手を出すと場が流れ、出した人がそのまま次の手を出せます。' },
+  { title: '10捨て', key: 'tenDump', text: '10を含む手（10の組も含む）を出すと、10の枚数ぶん、手札から捨てる札を任意に選んで捨てます。捨てた札は場に出ず、ゲームから外れます。場は流れません。手札が足りないときは、ある分だけ捨てます。8切りと同時にONにもできます。階段革命の手では発動しません。' },
+  { title: '11バック', key: 'elevenBack', text: 'Jを含む手を出すと、その場が流れるまで強さの順が逆転します。革命中は革命と組み合わさり、二重に効いて元に戻ります。' },
+  { title: 'しばり', key: 'bind', text: '場の札と同じマークの札しか出せません。出せなければパスします。ジョーカーは例外で、どの場でも出せます。場がジョーカーだけのときは働きません。' },
+  { title: '都落ち', key: 'outcast', text: 'ONのとき、前回の大富豪が今回1位にならなければ大貧民になります。前の大富豪を除いた残りのプレイヤーは、順位を詰めて役が決まります。' },
+  { title: '7渡し', key: 'sevenPass', text: '7を出すと、出した7の枚数ぶん（手札が足りない場合はその分まで）、渡す札を手札から選び、まとめて次の手番の、上がっていないプレイヤーに渡します。スキップはできません。渡せる相手がいない場合は行いません。' },
+  { title: '大富豪交換', key: 'exchange', text: '2回目以降のゲーム開始時に行います。大貧民は最強の札（ジョーカーを含む）2枚を大富豪に渡し、大富豪は任意の2枚を返します。4人以上では貧民が最強の札1枚を富豪に渡し、富豪は任意の1枚を返します。' },
+  { title: '交換の札選択', key: 'exchangeChoose', text: 'ONのとき、大富豪・富豪の人間は、大貧民・貧民の手札を見ながら、受け取る札を自分で選べます（OFFは最強の札が自動で渡されます）。大富豪・富豪が返す札も画面で選びます。どちらも決定前に確認画面が出ます。' },
+  { title: 'スペードの3がジョーカーに勝つ', key: 'spade3Joker', text: 'ONのとき、ジョーカー単体の場には、スペードの3だけを出して勝てます（ジョーカーに勝てる唯一の札）。ジョーカーに勝ったスペードの3には、どの札も勝てず、その場は流れるまで誰も出せません。' },
+  { title: '最強の札で上がり禁止', key: 'noStrongFinish', text: 'ONのとき、最強の札（ジョーカー、通常時の2、革命時の3、「スペードの3がジョーカーに勝つ」がONならスペードの3）を含む手で、手札を出し切って上がることはできません。最強の札以外に出せる手がなくなった人は、上がれないまま最後まで残ります（順位は最後に付きます）。' },
+  { title: '毎回大富豪から始める', key: 'richStart', text: 'ONのとき、2回目以降のゲームの最初の手番は、前回の大富豪から始まります（大富豪がいないときは♦3を持つ人）。1回目は♦3を持つ人から始まります。' },
+  { title: '役について', key: null, text: '3人の場合は大富豪・平民・大貧民。4人以上の場合は1位が大富豪、2位が富豪、最下位が大貧民、その一つ上が貧民で、残りは平民です。' },
+];
+
+const defaultRules = () => Object.fromEntries(RULE_DEFS.map(r => [r.key, false]));
+function normalizeRules(r) {
+  if (!r.exchange) r.exchangeChoose = false;
+  return r;
+}
+
+const UI = {
+  screen: 'title', series: null, game: null, inGame: false,
+  draft: { name: '', cpuCount: 3, levels: Array(7).fill('普通'), rules: defaultRules() },
+  theme: 'casino', highlight: true, sortMode: 'num',
+  selected: new Set(), messages: [], lastPlayId: -1, dealAnim: false,
+  stairMode: 'normal',
+  timer: null, overlay: null,
+  exchange: null, exMode: 'give', exSel: new Set(), exStep: 'select',
+  seven: { target: null, sel: null },
+  myId: 0, net: null, invitePeer: null, confirmFn: null, confirmBack: null,
+  guest: { answer: null, name: '' }, sevKey: null, exKey: null, discSel: new Set(), disKey: null,
+};
+
+const cardName = c => c.num === 16 ? 'JOKER' : Logic.SUIT_SYM[c.suit] + Logic.label(c.num);
+const humanOf = g => g.players[UI.myId];
+const isHumanTurn = g => !!g && !g.over && g.phase === 'play' && g.turn === UI.myId && !g.players[g.turn].finished;
+const emptyRecord = () => Object.fromEntries(ROLE_ORDER.map(r => [r, 0]));
+
+// 標準的なマーク配置（x, y は％）。下半分のマークは上下反転させる。
+const PIP_POS = {
+  2: [[50, 30], [50, 70]],
+  3: [[50, 30], [50, 50], [50, 70]],
+  4: [[34, 30], [66, 30], [34, 70], [66, 70]],
+  5: [[34, 30], [66, 30], [50, 50], [34, 70], [66, 70]],
+  6: [[34, 30], [66, 30], [34, 50], [66, 50], [34, 70], [66, 70]],
+  7: [[34, 30], [66, 30], [50, 40], [34, 50], [66, 50], [34, 70], [66, 70]],
+  8: [[34, 30], [66, 30], [50, 40], [34, 50], [66, 50], [50, 60], [34, 70], [66, 70]],
+  9: [[34, 30], [66, 30], [34, 40], [66, 40], [50, 50], [34, 60], [66, 60], [34, 70], [66, 70]],
+  10: [[34, 30], [66, 30], [50, 38], [34, 44], [66, 44], [34, 56], [66, 56], [50, 62], [34, 70], [66, 70]],
+};
+function pipsHTML(num, s) {
+  if (num === 14) return `<span class="pp big">${s}</span>`;   // A
+  const value = num === 15 ? 2 : num;                            // 内部値の2は15
+  return PIP_POS[value].map(([x, y]) =>
+    `<span class="pp${y > 50 ? ' flip' : ''}${value >= 9 ? ' dense' : ''}" style="left:${x}%;top:${y}%">${s}</span>`).join('');
+}
+function cardHTML(c, o = {}) {
+  if (!c || o.back) return '<div class="card back"></div>';
+  const cls = ['card'];
+  let body;
+  if (c.num === 16) {
+    cls.push('joker');
+    body = '<div class="jt"><b>JOKER</b></div>';
+  } else {
+    const red = c.suit === 'H' || c.suit === 'D';
+    cls.push(red ? 'red' : 'black');
+    const L = Logic.label(c.num), s = Logic.SUIT_SYM[c.suit] + '\uFE0E';
+    const corners = `<span class="ix tl">${L}<small>${s}</small></span><span class="ix br">${L}<small>${s}</small></span>`;
+    const mid = (c.num >= 11 && c.num <= 13)
+      ? `<div class="panel"><i>${s}</i></div>`
+      : pipsHTML(c.num, s);
+    body = corners + mid;
+  }
+  if (o.sel) cls.push('sel');
+  if (o.dim) cls.push('dim');
+  if (o.hint) cls.push('hint');
+  return `<div class="${cls.join(' ')}" data-cid="${c.id}">${body}</div>`;
+}
+
+function sortCards(g, arr) {
+  const ctx = Logic.ctxOf(g);
+  const SO = { S: 0, H: 1, D: 2, C: 3, X: 4 };
+  const a = arr.slice();
+  if (UI.sortMode === 'num') a.sort((x, y) => Logic.cardPower(x, ctx) - Logic.cardPower(y, ctx) || SO[x.suit] - SO[y.suit]);
+  else a.sort((x, y) => SO[x.suit] - SO[y.suit] || Logic.cardPower(x, ctx) - Logic.cardPower(y, ctx));
+  return a;
+}
+// 両方ONで階段の形のときだけ、ユーザーが選んだ出し方を使う
+function playMode(g, cards) {
+  return (g.rules.stairs && g.rules.stairRev && Logic.isStairShape(cards)) ? UI.stairMode : 'normal';
+}
+
+/* ---------- 画面の切り替え ---------- */
+function render() {
+  const app = $('#app');
+  const pages = { title: titleHTML, settings: settingsHTML, hostlobby: settingsHTML, mp: mpHTML,
+    guestjoin: guestJoinHTML, guestlobby: guestLobbyHTML };
+  app.innerHTML = pages[UI.screen] ? pages[UI.screen]() : gameHTML();
+  document.querySelectorAll('[data-theme-pick]').forEach(s => { s.value = UI.theme; });
+  renderAll();
+}
+function setTheme(t) {
+  UI.theme = t;
+  document.body.dataset.theme = t;
+  document.querySelectorAll('[data-theme-pick]').forEach(s => { s.value = t; });
+}
+function themeOptions() {
+  return THEMES.map(([v, n]) => `<option value="${v}" ${v === UI.theme ? 'selected' : ''}>${n}</option>`).join('');
+}
+
+function titleHTML() {
+  return `<div class="title-screen">
+    <div class="fan">${cardHTML({ id: -1, suit: 'S', num: 15 })}${cardHTML({ id: -2, suit: 'H', num: 14 })}${cardHTML({ id: -3, suit: 'X', num: 16 })}</div>
+    <div class="logo">大富豪</div>
+    <p class="small">スマホで遊べる、CPUとの一人用大富豪</p>
+    <button class="btn big" data-act="newGame">はじめから</button>
+    <button class="btn big" data-act="mp">みんなで遊ぶ（同じWi-Fi）</button>
+    <button class="btn ghost" data-act="rules">ルール説明</button>
+  </div>`;
+}
+
+function settingsHTML() {
+  const d = UI.draft;
+  const cpuBtns = (UI.net ? [0, 1, 2, 3, 4, 5, 6, 7] : [2, 3, 4, 5, 6, 7]).map(n => `<button class="btn small ${n === d.cpuCount ? 'on' : ''}" data-act="cpu" data-n="${n}">${n}人</button>`).join('');
+  const levels = Array.from({ length: d.cpuCount }, (_, i) => `
+    <div class="cpu-row"><span>${CPU_NAMES[lobbyHumanCount() + i - 1] || 'CPU'}</span>
+      <select class="sel" data-draft="level" data-i="${i}">
+        ${LEVELS.map(l => `<option ${l === d.levels[i] ? 'selected' : ''}>${l}</option>`).join('')}
+      </select></div>`).join('');
+  const rules = RULE_DEFS.filter(r => !(r.hideWhenOff && r.needs && !r.needs(d.rules))).map(r => {
+    const avail = !r.needs || r.needs(d.rules);
+    return `<label class="rule ${avail ? '' : 'dis'}">
+      <input type="checkbox" data-rule="${r.key}" ${d.rules[r.key] ? 'checked' : ''} ${avail ? '' : 'disabled'}>
+      <div><b>${r.name}</b><small>${avail ? r.desc : r.off}</small></div></label>`;
+  }).join('');
+  return `
+  <div class="bar"><button class="btn small ghost" data-act="toTitle">← 戻る</button><h1>${isHost() ? '部屋（ホスト）' : '設定'}</h1><span></span></div>
+  ${isHost() ? hostPanelHTML() : ''}
+  <div class="form">
+    <label class="lbl">あなたの名前（任意）
+      <input id="nameIn" class="txt" maxlength="10" placeholder="あなた" value="${esc(d.name)}"></label>
+    <div class="lbl">CPUの人数（${UI.net ? '0〜7人' : '2〜7人'}）</div>
+    <div class="seg">${cpuBtns}</div>
+    <div class="lbl">CPUの強さ</div>
+    ${levels}
+    <div class="lbl">ルール（連続戦の開始時に設定。初期はすべてOFF）</div>
+    ${rules}
+    <label class="rule"><input id="hlIn" type="checkbox" ${UI.highlight ? 'checked' : ''}>
+      <div><b>出せるカードのハイライト</b><small>ONで出せる札を光らせ、出せない札を暗くします</small></div></label>
+    <label class="lbl">テーマ
+      <select class="sel" data-theme-pick>${themeOptions()}</select></label>
+    <button class="btn big" data-act="start">ゲーム開始</button>
+  </div>`;
+}
+
+function gameHTML() {
+  return `
+  <div class="bar">
+    <button class="btn small ghost" data-act="quit">やめる</button>
+    <h1>大富豪</h1>
+    <div class="bar-r"><button class="btn small" data-act="rules">ルール</button><button class="btn small" data-act="board">記録</button></div>
+  </div>
+  <div class="toolbar">
+    <select class="sel" data-theme-pick>${themeOptions()}</select>
+    <button class="btn small" id="btnSort" data-act="sort"></button>
+    <button class="btn small" id="btnHl" data-act="hl"></button>
+    ${isHost() ? '<button class="btn small" data-act="invite">参加者を追加</button>' : ''}
+  </div>
+  <div class="badges" id="badges"></div>
+  <div class="opps" id="opps"></div>
+  <div class="field-wrap"><div class="field" id="field"></div></div>
+  <div class="status" id="status"></div>
+  <div class="me"><div class="me-h" id="meH"></div><div class="hand" id="hand"></div></div>
+  <div class="modebar" id="modeBar"></div>
+  <div class="actions">
+    <button class="btn big" id="btnPlay" data-act="play">出す</button>
+    <button class="btn big ghost" id="btnPass" data-act="pass">パス</button>
+  </div>`;
+}
+
+/* ---------- ゲーム画面の描画 ---------- */
+function renderAll() {
+  const g = UI.game;
+  if (UI.screen !== 'game' || !g) return;
+  renderBadges(g); renderOpps(g); renderField(g); renderHand(g);
+  renderStatus(g); renderModeBar(g); renderButtons(g);
+}
+function renderBadges(g) {
+  const st = (g.revolution ? '<span class="b hot">革命中</span>' : '') + (g.elevenBack ? '<span class="b hot">11バック中</span>' : '');
+  const on = RULE_DEFS.filter(r => g.rules[r.key]).map(r => `<span class="b">${r.name}</span>`).join('');
+  $('#badges').innerHTML = (st + on) || '<span class="b">基本ルール</span>';
+}
+function renderOpps(g) {
+  $('#opps').innerHTML = g.players.filter(p => p.id !== UI.myId).map(p => {
+    const turn = g.phase === 'play' && !g.over && g.turn === p.id;
+    const backs = Array.from({ length: Math.min(p.hand.length, 6) }, () => cardHTML(null, { back: true })).join('');
+    let tag = '';
+    if (p.stuck) tag = '<span class="tag">上がれず</span>';
+    else if (p.finished) tag = `<span class="tag gold">${p.rank}位上がり</span>`;
+    else if (g.field && g.passed[p.id]) tag = '<span class="tag">パス</span>';
+    return `<div class="opp ${turn ? 'turn' : ''}">
+      <div class="oname">${esc(p.name)}</div><div class="olv">${p.isHuman ? '参加者' : p.level}</div>
+      <div class="ostack">${backs}</div>
+      <div class="ocount">残り${p.hand.length}枚 ${tag}</div></div>`;
+  }).join('');
+}
+function renderField(g) {
+  const el = $('#field');
+  const f = g.field;
+  if (!f) el.innerHTML = `<div class="empty">${g.phase === 'exchange' ? '大富豪交換中' : '場は空です'}</div>`;
+  else el.innerHTML = `<div class="fowner">${esc(g.players[f.owner].name)}が出しました${f.rev ? ' <span class="tag gold">階段革命</span>' : ''}</div>
+    <div class="fcards">${f.cards.map(c => cardHTML(c)).join('')}</div>`;
+  if (g.playId !== UI.lastPlayId) {
+    UI.lastPlayId = g.playId;
+    el.classList.remove('fx'); void el.offsetWidth; el.classList.add('fx');
+  }
+}
+function renderHand(g) {
+  const me = humanOf(g);
+  const hEl = $('#hand');
+  $('#meH').innerHTML = `<b>${esc(me.name)}</b><span>手札 ${me.hand.length}枚</span>${me.role ? `<span class="role r${ROLE_ORDER.indexOf(me.role) + 1}">${me.role}</span>` : ''}${me.stuck ? '<span class="tag">上がれず</span>' : me.finished ? `<span class="tag gold">${me.rank}位上がり</span>` : ''}`;
+  if (me.finished || me.hand.length === 0) { hEl.innerHTML = `<div class="empty">${me.stuck ? '上がれないまま最後まで残りました' : '上がりました。対局を見守りましょう'}</div>`; hEl.classList.remove('deal'); return; }
+  const ctx = Logic.ctxOf(g);
+  const my = isHumanTurn(g);
+  const ok = new Set();
+  if (my && UI.highlight) Logic.legalPlays(me.hand, ctx).forEach(x => x.cards.forEach(c => ok.add(c.id)));
+  hEl.innerHTML = sortCards(g, me.hand).map(c => cardHTML(c, {
+    sel: UI.selected.has(c.id),
+    hint: my && UI.highlight && ok.has(c.id),
+    dim: my && UI.highlight && !ok.has(c.id),
+  })).join('');
+  hEl.classList.toggle('deal', UI.dealAnim);
+}
+function renderStatus(g) {
+  let html;
+  if (g.over) html = '<b>ゲーム終了</b>';
+  else if (g.phase === 'exchange') html = '大富豪交換中です';
+  else if (g.phase === 'seven') {
+    const from = g.players[g.pendingSeven.from];
+    html = from.id === UI.myId ? `7渡し：あと${Logic.sevenNeed(g)}枚、札を渡してください` : `${esc(from.name)}が7渡し中…`;
+  }
+  else if (g.phase === 'discard') {
+    const from = g.players[g.pendingDiscard.from];
+    html = from.id === UI.myId ? `10捨て：${Logic.discardNeed(g, g.pendingDiscard.from)}枚、捨てる札を選んでください` : `${esc(from.name)}が10捨ての札を選んでいます…`;
+  }
+  else if (g.turn !== UI.myId) html = `${esc(g.players[g.turn].name)}が考えています…`;
+  else {
+    const me = humanOf(g);
+    const sel = me.hand.filter(c => UI.selected.has(c.id));
+    if (me.finished) html = me.stuck ? '上がれないまま最後まで残りました。残りの対局を見守りましょう' : '上がりました。残りの対局を見守りましょう';
+    else if (sel.length) {
+      const r = Logic.evaluatePlay(sel, Logic.ctxOf(g), playMode(g, sel));
+      html = r.ok ? `<span class="ok">出せます（${Logic.kindText(r.kind, r.len, r.rev)}）</span>` : `<span class="ng">${esc(r.reason)}</span>`;
+    } else html = g.field ? 'あなたの番です。出す札を選ぶか、パスしてください' : 'あなたの番です。場は空です。札を選んで出してください';
+  }
+  const log = UI.messages.slice(-2).map(m => `<div>${esc(m)}</div>`).join('');
+  $('#status').innerHTML = `<div>${html}</div><div class="log">${log}</div>`;
+}
+function renderModeBar(g) {
+  const me = humanOf(g);
+  const sel = me ? me.hand.filter(c => UI.selected.has(c.id)) : [];
+  const show = g.rules.stairs && g.rules.stairRev && isHumanTurn(g) && Logic.isStairShape(sel);
+  $('#modeBar').innerHTML = show
+    ? `<button class="btn small ${UI.stairMode === 'normal' ? 'on' : ''}" data-act="mode" data-m="normal">階段として出す</button>
+       <button class="btn small ${UI.stairMode === 'rev' ? 'on' : ''}" data-act="mode" data-m="rev">階段革命として出す</button>`
+    : '';
+}
+function renderButtons(g) {
+  const my = isHumanTurn(g);
+  $('#btnPlay').disabled = !my;
+  $('#btnPass').disabled = !my || !g.field;
+  $('#btnSort').textContent = `並べ替え：${UI.sortMode === 'num' ? '数字順' : 'マーク順'}`;
+  $('#btnHl').textContent = `ハイライト：${UI.highlight ? 'ON' : 'OFF'}`;
+}
+
+/* ---------- ゲームの進行 ---------- */
+function addMsg(t) { UI.messages.push(t); if (UI.messages.length > 6) UI.messages.shift(); }
+let telopTimer = null;
+function telop(text) {
+  const el = $('#telop');
+  el.textContent = text;
+  el.classList.remove('hidden');
+  el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+  clearTimeout(telopTimer);
+  telopTimer = setTimeout(() => el.classList.add('hidden'), 1000);
+}
+let toastTimer = null;
+function toast(text) {
+  const el = $('#toast');
+  el.textContent = text;
+  el.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add('hidden'), 1800);
+}
+function announce(g, e) {
+  const nm = i => g.players[i].name;
+  switch (e.type) {
+    case 'play': addMsg(`${nm(e.idx)}：${e.cards.map(cardName).join(' ')}（${Logic.kindText(e.kind, e.len, e.rev)}）`); break;
+    case 'pass': addMsg(`${nm(e.idx)}：パス`); break;
+    case 'flush': addMsg('場が流れました'); telop('場が流れました'); break;
+    case 'eight': addMsg('8切り！'); telop('8切り！'); break;
+    case 'ten': addMsg(`10捨て！（${e.n}枚捨てます）`); telop('10捨て！'); break;
+    case 'discard': addMsg(`${nm(e.idx)}が${e.n}枚捨てました`); break;
+    case 'eleven': addMsg('11バック！'); telop('11バック！'); break;
+    case 'revolution': addMsg(e.on ? '革命！' : '革命返し！'); telop(e.on ? '革命！' : '革命返し！'); break;
+    case 'stairRev': addMsg(`階段革命！（${e.on ? '革命' : '革命返し'}）`); telop('階段革命！'); break;
+    case 'sevenStart': addMsg(`${nm(e.idx)}が7を出しました（7渡し）`); telop('7渡し！'); break;
+    case 'give': addMsg(`${nm(e.from)}が${nm(e.to)}に札を渡しました`); break;
+    case 'spade3': addMsg('スペードの3でジョーカーに勝ちました（この場は流れるまで誰も勝てません）'); telop('スペードの3！'); break;
+    case 'finish': addMsg(`${nm(e.idx)}が${e.rank}位で上がり！`); telop(`${nm(e.idx)} ${e.rank}位上がり`); break;
+  }
+}
+function afterAction(g, events) {
+  events.forEach(e => announce(g, e));
+  runFlow();
+}
+function runFlow() {
+  const g = UI.game;
+  if (!g) return;
+  const who = g.players[g.turn];
+  if (g.phase === 'play' && who && !who.finished && Logic.stuckCheck(g)) {
+    addMsg(`${who.name}は上がれるカードがなく、最後まで残ります`);
+    runFlow();
+    return;
+  }
+  if (g.over) {
+    recordGame(g);
+    netBroadcast();
+    renderAll();
+    openResult();
+    return;
+  }
+  netBroadcast();
+  renderAll();
+  if (g.phase === 'exchange') { handleExchange(); return; }
+  if (g.phase === 'discard') {
+    const from = g.players[g.pendingDiscard.from];
+    if (from.id === UI.myId) { if (UI.overlay !== 'discard') openDiscard(); }
+    else if (!from.isHuman) {
+      clearTimeout(UI.timer);
+      UI.timer = setTimeout(() => cpuDiscard(g), 500);
+    }
+    return;
+  }
+  if (g.phase === 'seven') {
+    const from = g.players[g.pendingSeven.from];
+    if (from.id === UI.myId) { if (UI.overlay !== 'seven') openSeven(); }
+    else if (!from.isHuman) {
+      clearTimeout(UI.timer);
+      UI.timer = setTimeout(() => cpuSeven(g), 500);
+    }
+    return;
+  }
+  const cur = g.players[g.turn];
+  if (!cur.isHuman) {
+    clearTimeout(UI.timer);
+    const delay = cur.level === '弱い' ? 900 : cur.level === '普通' ? 750 : 600;
+    UI.timer = setTimeout(() => cpuTurn(g), delay);
+  }
+}
+function cpuTurn(g) {
+  if (UI.game !== g || g.over || g.phase !== 'play') return;
+  const idx = g.turn, p = g.players[idx];
+  if (p.isHuman) return;
+  const choice = CPU.choosePlay(CPU.view(g, idx), p.level);
+  let res = choice ? Logic.applyPlay(g, idx, choice.cards, choice.rev ? 'rev' : 'normal') : Logic.applyPass(g, idx);
+  if (!res.ok && g.field) res = Logic.applyPass(g, idx);
+  if (!res.ok) return;
+  afterAction(g, res.events);
+}
+function cpuSeven(g) {
+  if (UI.game !== g || g.phase !== 'seven') return;
+  const s = g.pendingSeven, p = g.players[s.from];
+  const res = Logic.giveSevenCards(g, CPU.chooseSevenCards(p.hand, Logic.sevenNeed(g), Logic.ctxOf(g)));
+  if (!res.ok) return;
+  afterAction(g, res.events);
+}
+/* ---------- 10捨て（捨て札の選択） ---------- */
+function cpuDiscard(g) {
+  if (UI.game !== g || g.phase !== 'discard') return;
+  const d = g.pendingDiscard, p = g.players[d.from];
+  const res = Logic.discardCards(g, d.from, CPU.chooseDiscard(p.hand, Logic.discardNeed(g, d.from), Logic.ctxOf(g)));
+  if (!res.ok) return;
+  afterAction(g, res.events);
+}
+function openDiscard() {
+  UI.selected.clear();
+  UI.discSel = new Set();
+  renderDiscard();
+}
+function renderDiscard() {
+  const g = UI.game, d = g.pendingDiscard;
+  if (!d) return;
+  const from = g.players[d.from];
+  const need = Logic.discardNeed(g, d.from);
+  const body = `<p>10捨て：手札から捨てる札を${need}枚選んでください（捨てた札は場に出ず、ゲームから外れます）</p>
+    <div class="hand exh" id="exHand">${sortCards(g, from.hand).map(c => cardHTML(c, { sel: UI.discSel.has(c.id) })).join('')}</div>
+    <div class="row"><span>選択 ${UI.discSel.size}/${need}</span>
+    <button class="btn big" data-act="discOk" ${UI.discSel.size === need ? '' : 'disabled'}>捨てる</button></div>
+    <div class="row"><button class="btn ghost small" data-act="quit">やめる</button></div>`;
+  openOverlay('discard', `<div class="modal"><h2>10捨て</h2>${body}</div>`);
+}
+function discToggle(id) {
+  const g = UI.game, d = g.pendingDiscard;
+  if (!d || !g.players[d.from].hand.some(c => c.id === id)) return;
+  if (UI.discSel.has(id)) UI.discSel.delete(id);
+  else if (UI.discSel.size < Logic.discardNeed(g, d.from)) UI.discSel.add(id);
+  else { toast(`${Logic.discardNeed(g, d.from)}枚までです`); return; }
+  renderDiscard();
+}
+function humanPlay() {
+  const g = UI.game;
+  if (!isHumanTurn(g)) return;
+  const me = humanOf(g);
+  const cards = me.hand.filter(c => UI.selected.has(c.id));
+  if (!cards.length) { toast('出す札を選んでください'); return; }
+  submit({ k: 'play', ids: cards.map(c => c.id), mode: playMode(g, cards) });
+}
+function humanPass() {
+  if (!isHumanTurn(UI.game)) return;
+  submit({ k: 'pass' });
+}
+function toggleCard(id) {
+  const g = UI.game;
+  if (!isHumanTurn(g)) return;
+  if (UI.selected.has(id)) UI.selected.delete(id); else UI.selected.add(id);
+  renderHand(g); renderStatus(g); renderModeBar(g); renderButtons(g);
+}
+
+/* ---------- 7渡し ---------- */
+function openSeven() {
+  UI.selected.clear();
+  UI.seven = { sel: new Set() };
+  renderSeven();
+}
+function renderSeven() {
+  const g = UI.game, s = g.pendingSeven;
+  if (!s) return;
+  const from = g.players[s.from];
+  const tgt = Logic.sevenTargets(g, s.from)[0];
+  const need = Logic.sevenNeed(g);
+  const body = `<p>7渡し：手札から${tgt ? esc(tgt.name) : ''}に渡す札を${need}枚、まとめて選んでください</p>
+    <div class="hand exh" id="exHand">${sortCards(g, from.hand).map(c => cardHTML(c, { sel: UI.seven.sel.has(c.id) })).join('')}</div>
+    <div class="row"><span>選択 ${UI.seven.sel.size}/${need}</span>
+    <button class="btn big" data-act="sevOk" ${UI.seven.sel.size === need ? '' : 'disabled'}>この札を渡す</button></div>`;
+  openOverlay('seven', `<div class="modal"><h2>7渡し</h2>${body}<div class="row"><button class="btn ghost small" data-act="quit">やめる</button></div></div>`);
+}
+function sevToggle(id) {
+  const g = UI.game, s = g.pendingSeven;
+  if (!s || !g.players[s.from].hand.some(c => c.id === id)) return;
+  if (UI.seven.sel.has(id)) UI.seven.sel.delete(id);
+  else if (UI.seven.sel.size < Logic.sevenNeed(g)) UI.seven.sel.add(id);
+  else { toast(`${Logic.sevenNeed(g)}枚までです`); return; }
+  renderSeven();
+}
+
+/* ---------- 大富豪交換 ---------- */
+function handleExchange() {
+  const g = UI.game;
+  const ex = Logic.pendingExchange(g);
+  if (!ex) return;
+  const giver = g.players[ex.giver], recv = g.players[ex.receiver];
+  if (ex.stage === 'give') {
+    // 「交換の札を自分で選ぶ」ONで受け取る側が人間なら、その人が渡す側の手札から選ぶ
+    if (recv.isHuman && g.rules.exchangeChoose) {
+      if (recv.id === UI.myId && UI.overlay !== 'exchange') openExchange(ex, 'take');
+      return;
+    }
+    clearTimeout(UI.timer);
+    UI.timer = setTimeout(() => {
+      if (UI.game !== g) return;
+      const e2 = Logic.pendingExchange(g);
+      if (!e2 || e2.stage !== 'give') return;
+      const gv = g.players[e2.giver], rv = g.players[e2.receiver];
+      Logic.exchangeGive(g, e2, Logic.pickStrongest(gv.hand, e2.count, Logic.ctxOf(g)));
+      addMsg(`${gv.name}が${rv.name}に札を渡しました（交換）`);
+      runFlow();
+    }, giver.isHuman ? 0 : 600);
+    return;
+  }
+  if (recv.isHuman) {
+    if (recv.id === UI.myId && UI.overlay !== 'exchange') openExchange(ex, 'return');
+    return;
+  }
+  clearTimeout(UI.timer);
+  UI.timer = setTimeout(() => {
+    if (UI.game !== g) return;
+    const e2 = Logic.pendingExchange(g);
+    if (!e2 || e2.stage !== 'return') return;
+    const rv = g.players[e2.receiver], gv = g.players[e2.giver];
+    const cards = CPU.chooseReturn(rv.hand, e2.count, rv.level, Logic.ctxOf(g));
+    Logic.exchangeReturn(g, e2, cards);
+    addMsg(`${rv.name}が${gv.name}に${cards.length}枚を返しました`);
+    runFlow();
+  }, 700);
+}
+const exWho = (g, ex) => g.players[UI.exMode === 'return' ? ex.receiver : ex.giver];
+function openExchange(ex, mode) {
+  UI.selected.clear();
+  UI.exchange = ex;
+  UI.exMode = mode;
+  UI.exSel = new Set();
+  UI.exStep = 'select';
+  renderExchange();
+}
+function renderExchange() {
+  const g = UI.game, ex = UI.exchange, mode = UI.exMode;
+  const who = exWho(g, ex);
+  const other = g.players[mode === 'return' ? ex.giver : ex.receiver];
+  let body;
+  if (UI.exStep === 'confirm') {
+    const chosen = who.hand.filter(c => UI.exSel.has(c.id));
+    const msg = mode === 'take'
+      ? `${esc(who.name)}の手札から選んだ${ex.count}枚を受け取る札として決定します。よろしいですか？`
+      : `${esc(other.name)}に返す札${ex.count}枚を決定します。よろしいですか？`;
+    body = `<p>${msg}</p>
+      <div class="hand exh">${sortCards(g, chosen).map(c => cardHTML(c)).join('')}</div>
+      <div class="row"><button class="btn" data-act="exBack">選び直す</button>
+      <button class="btn big" data-act="exFinal">はい、決定</button></div>`;
+  } else {
+    const text = mode === 'take'
+      ? `${esc(who.name)}の手札（見えています）から、受け取る札を${ex.count}枚選んでください（ジョーカーは対象外）`
+      : `${esc(other.name)}に返す札を${ex.count}枚選んでください（受け取った札を含む。ジョーカーは対象外）`;
+    body = `<p>${text}</p>
+      <div class="hand exh" id="exHand">${sortCards(g, who.hand).map(c => cardHTML(c, { sel: UI.exSel.has(c.id) })).join('')}</div>
+      <div class="row"><span>選択 ${UI.exSel.size}/${ex.count}</span>
+      <button class="btn" data-act="exNext" ${UI.exSel.size === ex.count ? '' : 'disabled'}>決定へ</button></div>`;
+  }
+  body += `<div class="row"><button class="btn ghost small" data-act="quit">やめる</button></div>`;
+  openOverlay('exchange', `<div class="modal"><h2>大富豪交換</h2>${body}</div>`);
+}
+function exToggle(id) {
+  const g = UI.game, ex = UI.exchange;
+  const card = exWho(g, ex).hand.find(c => c.id === id);
+  if (!card) return;
+  if (UI.exSel.has(id)) UI.exSel.delete(id);
+  else if (UI.exSel.size < ex.count) UI.exSel.add(id);
+  else { toast(`${ex.count}枚までです`); return; }
+  renderExchange();
+}
+
+/* ---------- 連続戦・記録 ---------- */
+function startSeries() {
+  readSettingsDOM();
+  const d = UI.draft;
+  const humans = [{ name: d.name.trim() || 'あなた', peer: null }];
+  if (isHost()) namedPeers().filter(p => p.dc.readyState === 'open').forEach(p => humans.push({ name: p.name, peer: p }));
+  const total = humans.length + d.cpuCount;
+  if (total < 3 || total > 8) { toast(`合計${total}人です。3〜8人になるように、CPUの数を変えてください`); return; }
+  const players = humans.map((h, s) => ({
+    name: h.name, isHuman: true, level: '普通', record: emptyRecord(), role: null,
+    seatName: s === 0 ? null : CPU_NAMES[s - 1],
+  }));
+  for (let k = 0; k < d.cpuCount; k++) {
+    const s = humans.length + k;
+    players.push({ name: CPU_NAMES[s - 1], isHuman: false, level: d.levels[k], record: emptyRecord(), role: null, seatName: CPU_NAMES[s - 1] });
+  }
+  humans.forEach((h, s) => { if (h.peer) { h.peer.seat = s; netSend(h.peer.dc, { t: 'welcome', seat: s }); } });
+  UI.series = { players, rules: { ...normalizeRules(d.rules) }, gameCount: 0 };
+  UI.myId = 0;
+  startNewGame();
+}
+function startNewGame() {
+  clearTimeout(UI.timer);
+  closeOverlay();
+  UI.game = Logic.startGame(UI.series);
+  UI.selected.clear();
+  UI.messages = [];
+  UI.lastPlayId = -1;
+  UI.screen = 'game';
+  UI.dealAnim = true;
+  setTimeout(() => { UI.dealAnim = false; }, 900);
+  if (!UI.inGame) { history.pushState({ game: true }, ''); UI.inGame = true; }
+  const g = UI.game;
+  if (g.phase === 'exchange') addMsg('大富豪交換を行います');
+  render();
+  runFlow();
+}
+function recordGame(g) {
+  if (g.recorded) return;
+  g.recorded = true;
+  Logic.assignRoles(g);
+  g.players.forEach((p, i) => {
+    const sp = UI.series.players[i];
+    sp.role = p.role;
+    sp.record[p.role]++;
+  });
+  UI.series.gameCount++;
+}
+function endAll() {
+  clearTimeout(UI.timer);
+  netLeave();
+  UI.myId = 0;
+  UI.series = null; UI.game = null; UI.screen = 'title'; UI.inGame = false;
+  closeOverlay();
+  render();
+}
+
+/* ---------- オーバーレイ ---------- */
+function openOverlay(kind, html) {
+  UI.overlay = kind;
+  const el = $('#overlay');
+  el.innerHTML = html;
+  el.classList.remove('hidden');
+}
+function closeOverlay() {
+  UI.overlay = null;
+  const el = $('#overlay');
+  el.classList.add('hidden');
+  el.innerHTML = '';
+}
+function openResult() {
+  const g = UI.game;
+  const rows = [...g.players].sort((a, b) => a.rank - b.rank).map(p =>
+    `<tr><td>${p.rank}位</td><td>${esc(p.name)}</td><td><span class="role r${ROLE_ORDER.indexOf(p.role) + 1}">${p.role}</span></td></tr>`).join('');
+  const fallNote = g.fallenId != null
+    ? `<p class="ok">都落ち：${esc(g.players[g.fallenId].name)}は1位になれなかったため大貧民になりました</p>` : '';
+  openOverlay('result', `<div class="modal">
+    <h2>ゲーム終了</h2>
+    <table class="board"><tbody>${rows}</tbody></table>
+    ${fallNote}
+    <p class="small">次のゲームは同じ連続戦として、同じ設定で始まります。</p>
+    <div class="col">
+      <button class="btn big" data-act="next">次のゲーム</button>
+      <button class="btn" data-act="board">スコアボード</button>
+      <button class="btn ghost" data-act="endSeries">連続戦を終了</button>
+    </div></div>`);
+}
+function openBoard() {
+  const s = UI.series;
+  if (!s) return;
+  const head = `<tr><th>名前</th>${ROLE_ORDER.map(r => `<th>${r}</th>`).join('')}<th>総ゲーム数</th></tr>`;
+  const rows = s.players.map(p => `<tr><td>${esc(p.name)}</td>${ROLE_ORDER.map(r => `<td>${p.record[r]}</td>`).join('')}<td>${s.gameCount}</td></tr>`).join('');
+  openOverlay('board', `<div class="modal">
+    <h2>スコアボード</h2>
+    <p class="small">この連続戦：${s.gameCount}ゲーム（連続戦を終了すると記録は消えます）</p>
+    <div class="tablewrap"><table class="board"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
+    <div class="row"><button class="btn big" data-act="closeBoard">閉じる</button></div></div>`);
+}
+function openRules() {
+  const rules = UI.series ? UI.series.rules : UI.draft.rules;
+  const secs = RULE_SECTIONS.map(s => ({ ...s, on: !!(s.key && rules[s.key]) }))
+    .sort((a, b) => (b.on ? 1 : 0) - (a.on ? 1 : 0));
+  const body = secs.map(s => `<section class="rs ${s.on ? 'on' : ''}">
+    <h3>${s.title}${s.on ? ' <span class="tag gold">この連続戦でON</span>' : ''}</h3><p>${s.text}</p></section>`).join('');
+  openOverlay('rules', `<div class="modal"><h2>ルール説明</h2>${body}<div class="row"><button class="btn big" data-act="close">閉じる</button></div></div>`);
+}
+
+/* ---------- 設定の読み取り ---------- */
+function readSettingsDOM() {
+  const d = UI.draft;
+  const n = $('#nameIn'); if (n) d.name = n.value;
+  document.querySelectorAll('[data-draft="level"]').forEach(s => { d.levels[+s.dataset.i] = s.value; });
+  document.querySelectorAll('[data-rule]').forEach(c => { d.rules[c.dataset.rule] = c.checked; });
+  const h = $('#hlIn'); if (h) UI.highlight = h.checked;
+  normalizeRules(d.rules);
+}
+
+/* =====================================================================
+ * 4. マルチプレイ（同じネットワーク内のWebRTC）
+ *    サーバーは使わない。接続コードをコピー＆ペーストして1対1の接続を作る。
+ *    ホストが対局を管理し、ゲストは表示と操作の送信だけを行う。
+ * ===================================================================== */
+const NET_PREFIX = 'DFG1.';
+const isHost = () => !!UI.net && UI.net.role === 'host';
+const isGuest = () => !!UI.net && UI.net.role === 'guest';
+const hostPeers = () => (UI.net ? UI.net.peers : []);
+const namedPeers = () => hostPeers().filter(p => p.name && !p.dropped);
+const newPC = () => new RTCPeerConnection({ iceServers: [] });
+const lobbyHumanCount = () => 1 + namedPeers().length;
+
+function encodeCode(desc) {
+  const json = JSON.stringify({ type: desc.type, sdp: desc.sdp });
+  return NET_PREFIX + btoa(String.fromCharCode(...new TextEncoder().encode(json)));
+}
+function decodeCode(code) {
+  const s = String(code || '').trim();
+  if (!s.startsWith(NET_PREFIX)) throw new Error('コードの形式が違います');
+  const bytes = Uint8Array.from(atob(s.slice(NET_PREFIX.length)), c => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+function waitIce(pc) {
+  return new Promise(resolve => {
+    if (pc.iceGatheringState === 'complete') return resolve();
+    const onChange = () => {
+      if (pc.iceGatheringState === 'complete') { pc.removeEventListener('icegatheringstatechange', onChange); resolve(); }
+    };
+    pc.addEventListener('icegatheringstatechange', onChange);
+    setTimeout(resolve, 5000);
+  });
+}
+function netSend(dc, m) { if (dc && dc.readyState === 'open') dc.send(JSON.stringify(m)); }
+function netSeat(seat, m) { const p = hostPeers().find(x => x.seat === seat); if (p) netSend(p.dc, m); }
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => toast('コピーしました'), () => fallbackCopy(text));
+  } else fallbackCopy(text);
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  ta.remove();
+  toast(ok ? 'コピーしました' : 'コピーできません。文字を選んでコピーしてください');
+}
+function refreshLobby() { if (UI.screen === 'hostlobby') { readSettingsDOM(); render(); } }
+
+/* ---------- ホスト側 ---------- */
+async function hostMakeOffer() {
+  const pc = newPC();
+  const dc = pc.createDataChannel('daifugou');
+  const peer = { pc, dc, name: '', seat: null, dropped: false, code: '' };
+  UI.net.peers.push(peer);
+  dc.onmessage = e => netHostMessage(peer, JSON.parse(e.data));
+  dc.onclose = () => netDrop(peer);
+  pc.onconnectionstatechange = () => { if (['failed', 'closed'].includes(pc.connectionState)) netDrop(peer); };
+  await pc.setLocalDescription(await pc.createOffer());
+  await waitIce(pc);
+  peer.code = encodeCode(pc.localDescription);
+  return peer;
+}
+async function openInvite() {
+  if (!isHost()) return;
+  toast('コードを作成しています…');
+  const peer = await hostMakeOffer();
+  UI.invitePeer = peer;
+  openOverlay('invite', `<div class="modal"><h2>参加者を追加</h2>
+    <p>① 参加者に、下のコードを送ってください（コピーして貼り付け）。</p>
+    <textarea id="offerTa" class="txt code" readonly>${peer.code}</textarea>
+    <div class="row"><button class="btn" data-act="copyOffer">コードをコピー</button></div>
+    <p>② 参加者が作った「返答コード」を、下に貼り付けてください。</p>
+    <textarea id="answerIn" class="txt code" placeholder="返答コードを貼り付け"></textarea>
+    <div class="row"><button class="btn ghost" data-act="closeInvite">閉じる</button>
+    <button class="btn big" data-act="connectAnswer">接続する</button></div></div>`);
+}
+async function connectAnswer() {
+  const peer = UI.invitePeer;
+  if (!peer) return;
+  let desc;
+  try { desc = decodeCode($('#answerIn').value); } catch (e) { toast(e.message); return; }
+  try { await peer.pc.setRemoteDescription(desc); } catch (e) { toast('返答コードが正しくありません'); return; }
+  UI.invitePeer = null;
+  closeOverlay();
+  toast('接続しています…');
+}
+function closeInvite() {
+  const peer = UI.invitePeer;
+  UI.invitePeer = null;
+  if (peer && !peer.name && peer.pc.connectionState !== 'connected') netDrop(peer);
+  closeOverlay();
+}
+function netHostMessage(peer, m) {
+  peer.seen = Date.now();
+  if (m.t === 'bye') return netDrop(peer);
+  if (m.t === 'ping') return;
+  if (m.t === 'hello') return netHello(peer, m.name);
+  if (m.t === 'act' && peer.seat !== null) applyAct(peer.seat, m.a);
+}
+function netHello(peer, name) {
+  peer.name = String(name || 'ゲスト').slice(0, 10);
+  if (!UI.game) {
+    if (namedPeers().length > 7) { netSend(peer.dc, { t: 'full' }); netDrop(peer); return; }
+    netSend(peer.dc, { t: 'welcome', seat: -1 });
+    refreshLobby();
+    return;
+  }
+  const seat = pickSeat(peer.name);
+  if (seat === null) { netSend(peer.dc, { t: 'full' }); netDrop(peer); return; }
+  seatTake(seat, peer.name);
+  peer.seat = seat;
+  netSend(peer.dc, { t: 'welcome', seat });
+  addMsg(`${peer.name}さんが${UI.series.players[seat].seatName}の席に参加しました`);
+  toast(`${peer.name}さんが参加しました`);
+  runFlow();
+}
+// 途中参加：同じ名前のCPUの席があればそこ、なければ空いているCPUの席からランダム
+function pickSeat(name) {
+  const g = UI.game, sp = UI.series.players;
+  const free = sp.map((p, s) => s).filter(s => s > 0 && !sp[s].isHuman && !g.players[s].finished);
+  if (!free.length) return null;
+  const same = free.find(s => sp[s].seatName === name);
+  return same !== undefined ? same : free[Math.floor(Math.random() * free.length)];
+}
+function seatTake(seat, name) {
+  const sp = UI.series.players[seat];
+  sp.isHuman = true; sp.name = name;
+  const gp = UI.game && UI.game.players[seat];
+  if (gp) { gp.isHuman = true; gp.name = name; }
+}
+function seatRevert(seat) {
+  const sp = UI.series.players[seat];
+  sp.isHuman = false; sp.name = sp.seatName; if (!sp.level) sp.level = '普通';
+  const gp = UI.game && UI.game.players[seat];
+  if (gp) { gp.isHuman = false; gp.name = sp.name; gp.level = sp.level; }
+}
+function netDrop(peer) {
+  if (!UI.net || peer.dropped) return;
+  peer.dropped = true;
+  try { peer.dc.close(); } catch (e) {}
+  try { peer.pc.close(); } catch (e) {}
+  UI.net.peers = UI.net.peers.filter(p => p !== peer);
+  if (peer.seat !== null && UI.series && UI.game) {
+    seatRevert(peer.seat);
+    addMsg(`${peer.name}さんが切断しました。CPUが代わります`);
+    toast(`${peer.name}さんの接続が切れました。CPUが代わります`);
+    runFlow();
+  } else refreshLobby();
+}
+// ホスト：生存の合図（ping）が8秒以上届かない参加者は切断とみなす（ブラウザを閉じても検出できるように）
+function startHostWatch() {
+  clearInterval(UI.net.timer);
+  UI.net.timer = setInterval(() => {
+    if (!isHost()) return;
+    hostPeers().slice().forEach(p => { if (p.seen && Date.now() - p.seen > 8000) netDrop(p); });
+  }, 2000);
+}
+function netSeriesEnded() {
+  if (!isHost()) return;
+  hostPeers().forEach(p => { if (p.seat !== null) { p.seat = null; netSend(p.dc, { t: 'lobby' }); } });
+}
+// ゲストに渡す状態。他人の手札は枚数だけにする（交換で受け取る側には渡す側の手札を見せる）
+function maskFor(g, seat) {
+  const ex = g.phase === 'exchange' ? Logic.pendingExchange(g) : null;
+  const players = g.players.map(p => {
+    const reveal = p.id === seat || (!!ex && ex.stage === 'give' && p.id === ex.giver && seat === ex.receiver);
+    const hand = reveal ? p.hand : p.hand.map((c, k) => ({ id: -1000 - p.id * 100 - k, suit: 'X', num: 0 }));
+    return { ...p, hand };
+  });
+  return JSON.parse(JSON.stringify({ ...g, players }));
+}
+function netBroadcast() {
+  if (!isHost() || !UI.game || !UI.series) return;
+  const series = {
+    players: UI.series.players.map(p => ({ name: p.name, isHuman: p.isHuman, level: p.level, record: p.record, role: p.role })),
+    rules: UI.series.rules, gameCount: UI.series.gameCount,
+  };
+  hostPeers().forEach(p => {
+    if (p.seat !== null) netSend(p.dc, { t: 'state', seat: p.seat, game: maskFor(UI.game, p.seat), series, msgs: UI.messages });
+  });
+}
+
+/* ---------- ゲスト側 ---------- */
+async function guestAnswer(offerCode, name) {
+  const pc = newPC();
+  UI.net = { role: 'guest', pc, dc: null, name };
+  pc.ondatachannel = e => {
+    UI.net.dc = e.channel;
+    e.channel.onopen = () => {
+      netSend(e.channel, { t: 'hello', name });
+      UI.net.ping = setInterval(() => netSend(e.channel, { t: 'ping' }), 2000);
+      window.addEventListener('pagehide', () => netSend(e.channel, { t: 'bye' }));
+    };
+    e.channel.onmessage = ev => guestMessage(JSON.parse(ev.data));
+    e.channel.onclose = () => guestDrop();
+  };
+  pc.onconnectionstatechange = () => { if (['failed', 'closed'].includes(pc.connectionState)) guestDrop(); };
+  await pc.setRemoteDescription(decodeCode(offerCode));
+  await pc.setLocalDescription(await pc.createAnswer());
+  await waitIce(pc);
+  return encodeCode(pc.localDescription);
+}
+function guestMessage(m) {
+  if (m.t === 'welcome') {
+    UI.myId = m.seat;
+    if (m.seat < 0) { UI.game = null; UI.screen = 'guestlobby'; render(); }
+  } else if (m.t === 'state') guestApply(m);
+  else if (m.t === 'lobby') { UI.game = null; closeOverlay(); UI.screen = 'guestlobby'; render(); }
+  else if (m.t === 'end') { toast('ホストが部屋を閉じました'); guestLeave(); }
+  else if (m.t === 'full') { toast('部屋が満員です'); guestLeave(); }
+  else if (m.t === 'err') { toast(m.msg); if (UI.game) guestOverlays(UI.game); }
+}
+function guestApply(m) {
+  const first = UI.screen !== 'game';
+  const prev = UI.game;
+  UI.myId = m.seat;
+  UI.series = m.series;
+  UI.messages = m.msgs || [];
+  const changed = !prev || prev.turn !== m.game.turn || prev.playId !== m.game.playId || prev.phase !== m.game.phase;
+  UI.game = m.game;
+  if (changed) UI.selected.clear();
+  if (!UI.inGame) { history.pushState({ game: true }, ''); UI.inGame = true; }
+  UI.screen = 'game';
+  if (first) render(); else renderAll();
+  if (m.game.over) { if (UI.overlay !== 'result') openResult(); return; }
+  if (UI.overlay === 'result') closeOverlay();
+  guestOverlays(m.game);
+}
+// 自分の番の操作画面（7渡し・交換）を、状態に合わせて開く・閉じる
+function guestOverlays(g) {
+  const me = UI.myId;
+  if (g.phase === 'seven' && g.pendingSeven.from === me) {
+    const key = `${g.playId}-${g.pendingSeven.remaining}`;
+    if (UI.overlay !== 'seven' || UI.sevKey !== key) { UI.sevKey = key; openSeven(); }
+  } else if (UI.overlay === 'seven') closeOverlay();
+  if (g.phase === 'discard' && g.pendingDiscard.from === me) {
+    const key = `${g.playId}-${g.pendingDiscard.remaining}`;
+    if (UI.overlay !== 'discard' || UI.disKey !== key) { UI.disKey = key; openDiscard(); }
+  } else if (UI.overlay === 'discard') closeOverlay();
+  const ex = g.phase === 'exchange' ? Logic.pendingExchange(g) : null;
+  let mode = null;
+  if (ex && ex.receiver === me) mode = ex.stage === 'give' ? (g.rules.exchangeChoose ? 'take' : null) : 'return';
+  if (mode) {
+    const key = `${mode}-${ex.stage}-${ex.count}-${ex.giver}-${ex.receiver}`;
+    if (UI.overlay !== 'exchange' || UI.exKey !== key) { UI.exKey = key; openExchange(ex, mode); }
+  } else if (UI.overlay === 'exchange') closeOverlay();
+}
+function guestDrop() {
+  if (!UI.net || UI.net.role !== 'guest') return;
+  toast('ホストとの接続が切れました');
+  guestLeave();
+}
+function guestLeave() {
+  netLeave();
+  UI.game = null; UI.series = null; UI.myId = 0;
+  UI.screen = 'title'; closeOverlay(); render();
+}
+
+/* ---------- 共通 ---------- */
+// 操作の提出：ゲストは送信、ホストは自分の座席として直接処理する
+function submit(a) {
+  if (isGuest()) { netSend(UI.net.dc, { t: 'act', a }); UI.selected.clear(); return; }
+  applyAct(UI.myId, a);
+}
+// 座席 seat の操作を処理する（ホストだけが行う）。遠隔の座席の不正な操作はその人にだけ伝える。
+function applyAct(seat, a) {
+  const g = UI.game;
+  if (!g || g.over) return;
+  const local = seat === UI.myId;
+  const fail = reason => { if (local) { toast(reason); runFlow(); } else netSeat(seat, { t: 'err', msg: reason }); };
+  if (a.k === 'play') {
+    if (g.phase !== 'play' || g.turn !== seat) return fail('あなたの番ではありません');
+    const cards = g.players[seat].hand.filter(c => a.ids.includes(c.id));
+    const res = Logic.applyPlay(g, seat, cards, a.mode || 'normal');
+    if (!res.ok) return fail(res.reason);
+    if (local) UI.selected.clear();
+    afterAction(g, res.events);
+  } else if (a.k === 'pass') {
+    if (g.phase !== 'play' || g.turn !== seat) return fail('あなたの番ではありません');
+    const res = Logic.applyPass(g, seat);
+    if (!res.ok) return fail(res.reason);
+    if (local) UI.selected.clear();
+    afterAction(g, res.events);
+  } else if (a.k === 'seven') {
+    if (g.phase !== 'seven' || g.pendingSeven.from !== seat) return fail('7渡しの番ではありません');
+    const res = Logic.giveSevenCards(g, a.ids);
+    if (!res.ok) return fail(res.reason);
+    if (local) closeOverlay();
+    afterAction(g, res.events);
+  } else if (a.k === 'discard') {
+    if (g.phase !== 'discard' || g.pendingDiscard.from !== seat) return fail('捨て札の番ではありません');
+    const res = Logic.discardCards(g, seat, a.ids);
+    if (!res.ok) return fail(res.reason);
+    if (local) closeOverlay();
+    afterAction(g, res.events);
+  } else if (a.k === 'ex') {
+    const ex = Logic.pendingExchange(g);
+    if (!ex || ex.receiver !== seat) return fail('交換の番ではありません');
+    const wasGive = ex.stage === 'give';
+    const src = wasGive ? g.players[ex.giver] : g.players[ex.receiver];
+    const cards = src.hand.filter(c => a.ids.includes(c.id));
+    const res = wasGive ? Logic.exchangeGive(g, ex, cards) : Logic.exchangeReturn(g, ex, cards);
+    if (!res.ok) return fail(res.reason);
+    addMsg(wasGive
+      ? `${g.players[ex.receiver].name}が${g.players[ex.giver].name}から札を受け取りました`
+      : `${g.players[ex.receiver].name}が${g.players[ex.giver].name}に札を返しました`);
+    if (local) closeOverlay();
+    runFlow();
+  }
+}
+function netLeave() {
+  const n = UI.net;
+  if (!n) return;
+  clearInterval(n.ping); clearInterval(n.timer);
+  UI.net = null;
+  if (n.role === 'host') {
+    n.peers.forEach(p => { netSend(p.dc, { t: 'end' }); try { p.dc.close(); } catch (e) {} try { p.pc.close(); } catch (e) {} });
+  } else {
+    try { if (n.dc) n.dc.close(); } catch (e) {}
+    try { n.pc.close(); } catch (e) {}
+  }
+}
+
+
+function hostPanelHTML() {
+  const rows = namedPeers().map(p => `<div class="cpu-row"><span>${esc(p.name)}</span><span class="small">参加中</span></div>`).join('');
+  return `<div class="form" style="padding-bottom:0">
+    <div class="lbl">参加者（あなたを含む）</div>
+    <div class="cpu-row"><span>${esc(UI.draft.name || 'あなた')}（ホスト）</span><span class="small">人間</span></div>
+    ${rows}
+    <button class="btn" data-act="invite">参加者を追加（コードを発行）</button>
+    <p class="small">空いた人数はCPUになります。合計は3〜8人です。途中参加は、CPUと同じ名前で入ると、その席に入れます。</p>
+  </div>`;
+}
+function mpHTML() {
+  return `<div class="bar"><button class="btn small ghost" data-act="toTitle">← 戻る</button><h1>みんなで遊ぶ</h1><span></span></div>
+  <div class="form">
+    <p class="small">同じWi-Fi（同じネットワーク）の端末同士で遊べます。サーバーは使わず、接続コードをコピーして相手に送ります。</p>
+    <button class="btn big" data-act="hostRoom">部屋を作る（ホスト）</button>
+    <button class="btn big" data-act="guestRoom">部屋に参加する（ゲスト）</button>
+  </div>`;
+}
+function guestJoinHTML() {
+  const g = UI.guest;
+  const body = g.answer
+    ? `<p>③ この「返答コード」を、ホストの画面に貼り付けてもらってください（コピーして送る）。</p>
+       <textarea id="answerOut" class="txt code" readonly>${g.answer}</textarea>
+       <div class="row"><button class="btn" data-act="copyAnswer">返答コードをコピー</button></div>
+       <p class="small">ホストが接続すると、ホストの開始を待つ画面に変わります。</p>`
+    : `<label class="lbl">あなたの名前（任意）<input id="nameG" class="txt" maxlength="10" placeholder="あなた"></label>
+       <label class="lbl">① ホストから受け取った「参加コード」を貼り付け<textarea id="offerIn" class="txt code" placeholder="参加コードを貼り付け"></textarea></label>
+       <button class="btn big" data-act="makeAnswer">② 返答コードを作る</button>
+       <p class="small">途中参加の場合は、入りたいCPUと同じ名前にすると、その席に入れます。</p>`;
+  return `<div class="bar"><button class="btn small ghost" data-act="toTitle">← 戻る</button><h1>部屋に参加</h1><span></span></div>
+    <div class="form">${body}</div>`;
+}
+function guestLobbyHTML() {
+  return `<div class="bar"><button class="btn small ghost" data-act="toTitle">やめる</button><h1>部屋</h1><span></span></div>
+    <div class="form"><p>接続しました。ホストがゲームを開始するまでお待ちください。</p></div>`;
+}
+
+/* ---------- イベント（委譲） ---------- */
+// 確認画面。元の画面（交換・7渡しなど）は「もどる」で元どおり戻す
+function askConfirm(message, label, fn) {
+  UI.confirmBack = UI.overlay ? { kind: UI.overlay, html: $('#overlay').innerHTML } : null;
+  UI.confirmFn = fn;
+  openOverlay('confirm', `<div class="modal"><h2>確認</h2><p>${esc(message)}</p>
+    <div class="row"><button class="btn" data-act="confirmNo">もどる</button>
+    <button class="btn big" data-act="confirmYes">${label}</button></div></div>`);
+}
+function endSeriesNow() {
+  clearTimeout(UI.timer);
+  netSeriesEnded();
+  UI.series = null; UI.game = null; UI.inGame = false;
+  UI.screen = 'settings'; closeOverlay(); render();
+}
+
+const ACTIONS = {
+  mp: () => { UI.screen = 'mp'; render(); },
+  hostRoom: () => { UI.net = { role: 'host', peers: [] }; startHostWatch(); UI.screen = 'hostlobby'; render(); },
+  guestRoom: () => { UI.net = null; UI.guest = { answer: null, name: '' }; UI.screen = 'guestjoin'; render(); },
+  invite: () => openInvite(),
+  closeInvite: () => closeInvite(),
+  copyOffer: () => copyText($('#offerTa').value),
+  connectAnswer: () => connectAnswer(),
+  makeAnswer: async () => {
+    const name = ($('#nameG').value.trim() || 'あなた').slice(0, 10);
+    const code = $('#offerIn').value;
+    try {
+      const answer = await guestAnswer(code, name);
+      UI.guest = { answer, name };
+      render();
+    } catch (e) { toast('参加コードが正しくありません'); netLeave(); }
+  },
+  copyAnswer: () => copyText($('#answerOut').value),
+  newGame: () => { UI.screen = 'settings'; render(); },
+  toTitle: () => { netLeave(); UI.screen = 'title'; render(); },
+  rules: () => openRules(),
+  cpu: b => { readSettingsDOM(); UI.draft.cpuCount = +b.dataset.n; render(); },
+  start: () => startSeries(),
+  play: () => humanPlay(),
+  pass: () => humanPass(),
+  sort: () => { UI.sortMode = UI.sortMode === 'num' ? 'suit' : 'num'; renderHand(UI.game); renderButtons(UI.game); },
+  hl: () => { UI.highlight = !UI.highlight; renderAll(); },
+  mode: b => { UI.stairMode = b.dataset.m; renderStatus(UI.game); renderModeBar(UI.game); },
+  quit: () => askConfirm('タイトルに戻ります。連続戦は終了します。', 'やめる', endAll),
+  board: () => openBoard(),
+  closeBoard: () => { if (UI.game && UI.game.over) openResult(); else closeOverlay(); },
+  close: () => closeOverlay(),
+  next: () => (isGuest() ? toast('次のゲームはホストが開始します') : startNewGame()),
+  endSeries: () => (isGuest() ? toast('ホストだけが操作できます') : askConfirm('連続戦を終了します。記録は破棄されます。', '終了する', endSeriesNow)),
+  confirmYes: () => { const f = UI.confirmFn; UI.confirmFn = null; UI.confirmBack = null; if (f) f(); },
+  confirmNo: () => {
+    UI.confirmFn = null;
+    const back = UI.confirmBack; UI.confirmBack = null;
+    if (back) openOverlay(back.kind, back.html); else closeOverlay();
+  },
+  // 7渡し
+  sevOk: () => {
+    const s = UI.game && UI.game.pendingSeven;
+    if (!s || UI.seven.sel.size !== Logic.sevenNeed(UI.game)) return;
+    const ids = [...UI.seven.sel];
+    UI.seven = { sel: new Set() };
+    closeOverlay();
+    submit({ k: 'seven', ids });
+  },
+  discOk: () => {
+    if (!UI.game || !UI.game.pendingDiscard || UI.discSel.size !== Logic.discardNeed(UI.game, UI.game.pendingDiscard.from)) return;
+    const ids = [...UI.discSel];
+    closeOverlay();
+    UI.discSel = new Set();
+    submit({ k: 'discard', ids });
+  },
+  // 大富豪交換
+  exNext: () => {
+    if (UI.exSel.size !== UI.exchange.count) return;
+    UI.exStep = 'confirm';
+    renderExchange();
+  },
+  exBack: () => { UI.exStep = 'select'; renderExchange(); },
+  exFinal: () => {
+    const ids = [...UI.exSel];
+    closeOverlay();
+    UI.exSel = new Set(); UI.exStep = 'select';
+    submit({ k: 'ex', ids });
+  },
+};
+
+document.addEventListener('click', e => {
+  const card = e.target.closest('.card[data-cid]');
+  if (card) {
+    const id = +card.dataset.cid;
+    if (UI.overlay === 'exchange' && UI.exStep !== 'confirm' && card.closest('#exHand')) exToggle(id);
+    else if (UI.overlay === 'seven' && card.closest('#exHand')) sevToggle(id);
+    else if (UI.overlay === 'discard' && card.closest('#exHand')) discToggle(id);
+    else if (UI.screen === 'game' && card.closest('#hand')) toggleCard(id);
+    return;
+  }
+  const btn = e.target.closest('[data-act]');
+  if (!btn || btn.disabled) return;
+  const fn = ACTIONS[btn.dataset.act];
+  if (fn) fn(btn);
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.matches('[data-theme-pick]')) { setTheme(t.value); return; }
+  if ((UI.screen === 'settings' || UI.screen === 'hostlobby') && (t.matches('[data-rule]') || t.matches('[data-draft]') || t.id === 'hlIn')) {
+    readSettingsDOM();
+    render();
+  }
+});
+window.addEventListener('popstate', () => {
+  if (UI.screen === 'game' && UI.game) {
+    history.pushState({ game: true }, '');
+    toast('ゲーム中は戻れません。「やめる」からタイトルへ戻れます');
+  }
+});
+
+setTheme(UI.theme);
+render();
+</script>
+</body>
+</html>
