@@ -590,7 +590,7 @@ const Logic = (() => {
     if (info.unbeatable) ev.push({ type: 'spade3' });
 
     if (info.rev) toggleRevolution(state, ev, 'stairRev');
-    else if (info.kind === 'set' && info.len === 4 && state.rules.revolution) toggleRevolution(state, ev, 'revolution');
+    else if (info.kind === 'set' && info.len >= 4 && state.rules.revolution && (info.len === 4 || state.rules.revMin4)) toggleRevolution(state, ev, 'revolution');
 
     if (nums.includes(11) && state.rules.elevenBack && !state.elevenBack) {
       state.elevenBack = true;
@@ -810,6 +810,7 @@ const ROLE_ORDER = Logic.ROLE_NAMES;
 const RULE_DEFS = [
   { key: 'revolution', name: '革命', desc: '同じ数字の4枚組で革命。強さの順が逆転（もう一度で戻る）' },
   { key: 'stairs', name: '階段（通常）', desc: '同じマークで連続する3枚以上を、場の制約に従って出す' },
+  { key: 'revMin4', name: '4枚以上で革命', desc: '同じ数字の組が4枚より多い場合（ワイルドのジョーカーで5枚以上になった組）も革命。OFFは4枚組のみ', needs: r => r.revolution, off: '革命がONのときのみ表示', hideWhenOff: true },
   { key: 'stairRev', name: '階段革命', desc: '同じマークで連続する4枚以上。場が空の自分のターン、または同じ枚数でより強い階段革命に対してのみ出せる。革命が起き、場は流れない' },
   { key: 'wild', name: 'ジョーカーのワイルド化', desc: 'ONでジョーカーが足りない数字を埋め、組・階段・革命に一緒に出せる（ジョーカーだけの組は従来どおり）' },
   { key: 'eightCut', name: '8切り', desc: '8を含む手で場が流れ、出した人が続けて出せる' },
@@ -830,6 +831,7 @@ const RULE_SECTIONS = [
   { title: '強さの順', key: null, text: '3 < 4 < 5 < 6 < 7 < 8 < 9 < 10 < J < Q < K < A < 2 < ジョーカー。ジョーカーは革命や11バックの影響を受けません。' },
   { title: '出し方', key: null, text: '1枚、または同じ数字の2〜4枚の組が出せます。ジョーカーは単独か、ジョーカー2枚のペアのみです（ワイルドONでは数字の代わりに組や階段に含められます）。' },
   { title: '革命', key: 'revolution', text: '同じ数字の4枚組を出すと革命が起き、数字の強さ順が逆転します。もう一度革命すると元に戻ります。ジョーカーは逆転しません。' },
+  { title: '4枚以上で革命', key: 'revMin4', text: '「革命」がONのとき、この設定をONにすると、同じ数字の組が4枚より多い場合（ワイルドのジョーカーを使って5枚以上になった組）も革命が起きます。OFFのときは4枚組のみ革命です。' },
   { title: '階段（通常）', key: 'stairs', text: '同じマークで連続する数字を3枚以上まとめて出せます。場に同じ枚数の階段が出ているときだけ、より強い階段で応じられます。通常どおり場の制約を受け、場は流れません。2はAの次として連続扱いです。' },
   { title: '階段革命', key: 'stairRev', text: '同じマークで連続する4枚以上を、場が空の自分のターン、または同じ枚数でより強い階段革命に対してのみ出せます（しばりも無視）。出すと革命が起きます（「革命」ルールとは独立）。場は流れず、出された手がそのまま場に残るので、次の人は同じ枚数でより強い階段革命で応じます。ジョーカーはワイルドONのときだけ含められます。階段と両方ONのときは、出す前に「階段として出す」か「階段革命として出す」かを選べます。' },
   { title: 'ジョーカーのワイルド化', key: 'wild', text: 'ONのとき、ジョーカーは足りない数字を埋めて、組・階段・階段革命・革命（同じ数字の4枚組）に一緒に出せます。ジョーカーだけの組は従来どおり単独かペアです。' },
@@ -850,6 +852,7 @@ const RULE_SECTIONS = [
 const defaultRules = () => Object.fromEntries(RULE_DEFS.map(r => [r.key, false]));
 function normalizeRules(r) {
   if (!r.exchange) r.exchangeChoose = false;
+  if (!r.revolution) r.revMin4 = false;
   return r;
 }
 
