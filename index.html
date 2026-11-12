@@ -174,12 +174,21 @@ table.board td:first-child{text-align:left}
 .ocount{font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden}
 
 .field-wrap{padding:4px 10px}
-.field{min-height:116px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:18px;background:rgba(0,0,0,.14);border:1px dashed rgba(255,255,255,.18)}
+.field{position:relative;min-height:116px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:18px;background:rgba(0,0,0,.14);border:1px dashed rgba(255,255,255,.18)}
 .fowner{font-size:12px;opacity:.9}
 .fcards{display:flex;justify-content:center}
 .fcards .card{margin-left:-14px}
 .fcards .card:first-child{margin-left:0}
-.field.fx .card{animation:slideIn .28s ease-out both}
+.fcards.fresh .card{animation:slideIn .22s ease-out both}
+.fcards.fresh.multi .card{animation:fadeUp .26s ease-out both}
+.fcards.fresh.multi .card:nth-child(2){animation-delay:.06s}
+.fcards.fresh.multi .card:nth-child(3){animation-delay:.12s}
+.fcards.fresh.multi .card:nth-child(4){animation-delay:.18s}
+.fcards.fresh.multi .card:nth-child(n+5){animation-delay:.24s}
+.field-ghost{position:absolute;left:8px;right:8px;top:8px;bottom:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:fadeOut .4s ease-in forwards}
+.flyer{position:fixed;z-index:66;pointer-events:none;margin:0}
+@keyframes fadeUp{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fadeOut{to{opacity:0}}
 
 .me{padding:4px 0 0}
 .me-h{display:flex;align-items:center;gap:8px;padding:0 14px;font-size:14px;flex-wrap:wrap}
@@ -188,10 +197,11 @@ table.board td:first-child{text-align:left}
 @keyframes slideIn{from{transform:translateY(46px);opacity:0}to{transform:none;opacity:1}}
 @keyframes dealIn{from{transform:translateY(-120px) scale(.6);opacity:0}to{transform:none;opacity:1}}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--accent)}50%{box-shadow:0 0 0 7px rgba(255,255,255,0)}}
-@keyframes telop{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}25%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0}}
+@keyframes telop{0%{opacity:0}15%{opacity:1}75%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){
   *{transition:none!important}
-  .card,.field.fx .card,.hand.deal .card,.opp.turn{animation:none!important}
+  .card,.fcards.fresh .card,.hand.deal .card,.opp.turn{animation:none!important}
+  .flyer,.field-ghost{display:none!important}
   .telop{animation:none;opacity:1}
 }
 </style>
@@ -471,15 +481,21 @@ const Logic = (() => {
   }
 
   const isSpadeThree = c => c.suit === 'S' && c.num === 3;
+  // 禁止上がりの判定で「最強の札」かどうか。場の状況で決まる。
+  // 11バックの逆転は、場にJがあるときだけ最強の判定に効く。スペードの3は、場にジョーカーがあるときだけ最強扱い。
   function isStrongest(c, ctx) {
+    const field = ctx.field || [];
+    const fieldHasJ = field.some(x => !isJoker(x) && x.num === 11);
+    const fieldHasJoker = field.some(x => isJoker(x));
     if (isJoker(c)) return true;
-    if (ctx.rules.spade3Joker && isSpadeThree(c)) return true;
-    const top = Math.max(...Array.from({ length: 13 }, (_, i) => numPower(i + 3, ctx)));
-    return numPower(c.num, ctx) === top;
+    if (ctx.rules.spade3Joker && isSpadeThree(c)) return fieldHasJoker;
+    const eff = { ...ctx, elevenBack: ctx.elevenBack && fieldHasJ };
+    const top = Math.max(...Array.from({ length: 13 }, (_, i) => numPower(i + 3, eff)));
+    return numPower(c.num, eff) === top;
   }
   // ルール「最強の札で上がり禁止」がONのとき、最強の札を含み手札を出し切る手（上がり）は禁止
   const bansStrongFinish = (cards, hand, ctx) =>
-    !!ctx.rules.noStrongFinish && cards.length === hand.length && cards.some(c => isStrongest(c, ctx));
+    !!ctx.rules.noStrongFinish && cards.length === hand.length && (cards.every(isJoker) || cards.some(c => isStrongest(c, ctx)));
   // 上がれないまま残った人を最下位にする（ゲーム終了時に順位を付ける）
   function finalizeStuck(state) {
     state.players.filter(p => p.stuck && p.rank == null).forEach(p => {
@@ -572,7 +588,7 @@ const Logic = (() => {
     state.played.push(...cards);
     state.pendingDiscard = null;
     state.phase = 'play';
-    const ev = [{ type: 'discard', idx, n: cards.length }];
+    const ev = [{ type: 'discard', idx, n: cards.length, cards }];
     if (p.hand.length === 0) finishPlayer(state, idx, ev);
     if (!state.over) finishEffects(state, idx, 0, d.eight, ev);
     return { ok: true, events: ev };
@@ -958,7 +974,7 @@ const RULE_DEFS = [
   { key: 'richStart', name: '毎回大富豪から始める', desc: '2回目以降も、ゲームの先手を♦3の持ち主ではなく大富豪にする（1回目は♦3の持ち主）' },
   { key: 'sevenPass', name: '7渡し', desc: '7を出した枚数ぶん、次の手番の（上がっていない）プレイヤーへ、渡す札をまとめて選んで渡す' },
   { key: 'spade3Joker', name: 'スペードの3がジョーカーに勝つ', desc: 'ジョーカー単体の場には、スペードの3だけが勝てる（唯一の札）。勝ったスペードの3には、場が流れるまで誰も勝てない' },
-  { key: 'noStrongFinish', name: '最強の札で上がり禁止', desc: '最強の札（ジョーカー、いまの強さの順で一番強い数字の札（通常は2、革命か11バックで逆転中は3）、「スペードの3がジョーカーに勝つ」がONならスペードの3）を含む手で、手札を出し切って上がることはできない' },
+  { key: 'noStrongFinish', name: '最強の札で上がり禁止', desc: '最強の札（ジョーカー、いまの強さの順で一番強い数字の札（通常は2、革命か11バックで逆転中は3）、「スペードの3がジョーカーに勝つ」がONならスペードの3）を含む手（ジョーカーだけの手を含む）で、手札を出し切って上がることはできない（最強かどうかは場の状況で決まる）' },
   { key: 'exchange', name: '大富豪交換', desc: '2回目以降の開始時に、大貧民・貧民が強い札（ジョーカーを含む）を大富豪・富豪に渡す' },
   { key: 'exchangeChoose', name: '交換の札を自分で選ぶ', desc: '大富豪・富豪の人間が、大貧民・貧民の手札を見て受け取る札を自分で選べる（OFFは最強の札が自動で渡る）',
     needs: r => r.exchange, off: '大富豪交換がONのときのみ表示', hideWhenOff: true },
@@ -981,7 +997,7 @@ const RULE_SECTIONS = [
   { title: '大富豪交換', key: 'exchange', text: '2回目以降のゲーム開始時に行います。大貧民は最強の札（ジョーカーを含む）2枚を大富豪に渡し、大富豪は任意の2枚を返します。4人以上では貧民が最強の札1枚を富豪に渡し、富豪は任意の1枚を返します。' },
   { title: '交換の札選択', key: 'exchangeChoose', text: 'ONのとき、大富豪・富豪の人間は、大貧民・貧民の手札を見ながら、受け取る札を自分で選べます（OFFは最強の札が自動で渡されます）。大富豪・富豪の人間が返す札は、このルールに関係なく画面で選びます。受け取る札・返す札は、どちらも決定前に確認画面が出ます。' },
   { title: 'スペードの3がジョーカーに勝つ', key: 'spade3Joker', text: 'ONのとき、ジョーカー単体の場には、スペードの3だけを出して勝てます（ジョーカーに勝てる唯一の札）。ジョーカーに勝ったスペードの3には、どの札（階段革命を含む）も勝てず、その場が流れるまで続きます。' },
-  { title: '最強の札で上がり禁止', key: 'noStrongFinish', text: 'ONのとき、最強の札（ジョーカー、いまの強さの順で一番強い数字の札（通常は2、革命か11バックで逆転中は3）、「スペードの3がジョーカーに勝つ」がONならスペードの3）を含む手で、手札を出し切って上がることはできません。最強の札以外に出せる手がなくなった人は、上がれないまま最後まで残ります（順位は最後に付きます）。' },
+  { title: '最強の札で上がり禁止', key: 'noStrongFinish', text: 'ONのとき、最強の札（ジョーカー、いまの強さの順で一番強い数字の札（通常は2、革命か11バックで逆転中は3）、「スペードの3がジョーカーに勝つ」がONならスペードの3）を含む手（ジョーカーだけの手を含む）で、手札を出し切って上がることはできません。11バックの逆転は場にJがあるとき、スペードの3は場にジョーカーがあるときだけ最強扱いになります。最強の札以外に出せる手がなくなった人は、上がれないまま最後まで残ります（順位は最後に付きます）。' },
   { title: '毎回大富豪から始める', key: 'richStart', text: 'ONのとき、2回目以降のゲームの最初の手番は、前回の大富豪から始まります（大富豪がいないときは♦3を持つ人）。1回目は♦3を持つ人から始まります。' },
   { title: '役について', key: null, text: '3人の場合は大富豪・平民・大貧民。4人以上の場合は1位が大富豪、2位が富豪、最下位が大貧民、その一つ上が貧民で、残りは平民です。' },
 ];
@@ -997,7 +1013,7 @@ const UI = {
   screen: 'title', series: null, game: null, inGame: false,
   draft: { name: '', cpuCount: 3, levels: Array(7).fill('普通'), rules: defaultRules() },
   theme: 'casino', highlight: true, sortMode: 'num',
-  selected: new Set(), messages: [], lastPlayId: -1, dealAnim: false,
+  selected: new Set(), messages: [], lastPlayId: -1, dealAnim: false, fieldSig: '', fieldHTML: '', fxSeq: 0, fxSeen: 0, fxEvents: [],
   stairMode: 'normal',
   timer: null, overlay: null,
   exchange: null, exMode: 'give', exSel: new Set(), exStep: 'select',
@@ -1174,7 +1190,7 @@ function renderOpps(g) {
     if (p.stuck) tag = '<span class="tag">上がれず</span>';
     else if (p.finished) tag = `<span class="tag gold">${p.rank}位上がり</span>`;
     else if (g.field && g.passed[p.id]) tag = '<span class="tag">パス</span>';
-    return `<div class="opp ${turn ? 'turn' : ''}">
+    return `<div class="opp ${turn ? 'turn' : ''}" data-pid="${p.id}">
       <div class="oname">${esc(p.name)}</div><div class="olv">${p.isHuman ? '参加者' : p.level}</div>
       <div class="ostack">${backs}</div>
       <div class="ocount">残り${p.hand.length}枚 ${tag}</div></div>`;
@@ -1183,18 +1199,37 @@ function renderOpps(g) {
 function renderField(g) {
   const el = $('#field');
   const f = g.field;
-  if (!f) el.innerHTML = `<div class="empty">${g.phase === 'exchange' ? '大富豪交換中' : '場は空です'}</div>`;
-  else el.innerHTML = `<div class="fowner">${esc(g.players[f.owner].name)}が出しました${f.rev ? ' <span class="tag gold">階段革命</span>' : ''}</div>
-    <div class="fcards">${f.cards.map(c => cardHTML(c)).join('')}</div>`;
-  if (g.playId !== UI.lastPlayId) {
-    UI.lastPlayId = g.playId;
-    el.classList.remove('fx'); void el.offsetWidth; el.classList.add('fx');
+  const sig = f ? `${g.playId}|${f.owner}|${f.rev ? 1 : 0}|${f.cards.map(c => c.id).join(',')}` : '';
+  // 場の中身が変わっていなければ DOM を触らない（再描画のたびに出し直しの演出が再生されるのを防ぐ）
+  if (sig === UI.fieldSig) return;
+  const hadField = UI.fieldSig !== '';
+  const prevHTML = UI.fieldHTML;
+  UI.fieldSig = sig;
+  if (!f) {
+    el.innerHTML = `<div class="empty">${g.phase === 'exchange' ? '大富豪交換中' : '場は空です'}</div>`;
+    UI.fieldHTML = '';
+    if (hadField && prevHTML && !reduceMotion()) {
+      // 場が流れた／清掃された時、直前の札を一瞬残して左へ流す
+      const gh = document.createElement('div');
+      gh.className = 'field-ghost';
+      gh.innerHTML = prevHTML;
+      el.appendChild(gh);
+      setTimeout(() => gh.remove(), 650);
+    }
+    return;
   }
+  const cardsHTML = f.cards.map(c => cardHTML(c)).join('');
+  const cls = ['fcards', 'fresh'];
+  if (f.cards.length >= 2) cls.push('multi');
+  UI.fieldHTML = `<div class="fcards">${cardsHTML}</div>`;
+  el.innerHTML = `<div class="fowner">${esc(g.players[f.owner].name)}が出しました${f.rev ? ' <span class="tag gold">階段革命</span>' : ''}</div>
+    <div class="${cls.join(' ')}">${cardsHTML}</div>`;
 }
 function renderHand(g) {
   const me = humanOf(g);
   const hEl = $('#hand');
   $('#meH').innerHTML = `<b>${esc(me.name)}</b><span>手札 ${me.hand.length}枚</span>${me.role ? `<span class="role r${ROLE_ORDER.indexOf(me.role) + 1}">${me.role}</span>` : ''}${me.stuck ? '<span class="tag">上がれず</span>' : me.finished ? `<span class="tag gold">${me.rank}位上がり</span>` : ''}`;
+  $('#meH').setAttribute('data-pid', me.id);
   if (me.finished || me.hand.length === 0) { hEl.innerHTML = `<div class="empty">${me.stuck ? '上がれないまま最後まで残りました' : '上がりました。対局を見守りましょう'}</div>`; hEl.classList.remove('deal'); return; }
   const ctx = Logic.ctxOf(g);
   const my = isHumanTurn(g);
@@ -1268,27 +1303,75 @@ function toast(text) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.add('hidden'), 1800);
 }
+const FX_TYPES = ['pass', 'flush', 'eight', 'ten', 'discard', 'eleven', 'revolution', 'stairRev', 'sevenStart', 'give', 'spade3', 'finish'];
 function announce(g, e) {
   const nm = i => g.players[i].name;
   switch (e.type) {
     case 'play': addMsg(`${nm(e.idx)}：${e.cards.map(cardName).join(' ')}（${Logic.kindText(e.kind, e.len, e.rev)}）`); break;
     case 'pass': addMsg(`${nm(e.idx)}：パス`); break;
-    case 'flush': addMsg('場が流れました'); telop('場が流れました'); break;
-    case 'eight': addMsg('8切り！'); telop('8切り！'); break;
-    case 'ten': addMsg(`10捨て！（${e.n}枚捨てます）`); telop('10捨て！'); break;
+    case 'flush': addMsg('場が流れました'); break;
+    case 'eight': addMsg('8切り！'); break;
+    case 'ten': addMsg(`10捨て！（${e.n}枚捨てます）`); break;
     case 'discard': addMsg(`${nm(e.idx)}が${e.n}枚捨てました`); break;
-    case 'eleven': addMsg('11バック！'); telop('11バック！'); break;
-    case 'revolution': addMsg(e.on ? '革命！' : '革命返し！'); telop(e.on ? '革命！' : '革命返し！'); break;
-    case 'stairRev': addMsg(`階段革命！（${e.on ? '革命' : '革命返し'}）`); telop('階段革命！'); break;
-    case 'sevenStart': addMsg(`${nm(e.idx)}が7を出しました（7渡し）`); telop('7渡し！'); break;
+    case 'eleven': addMsg('11バック！'); break;
+    case 'revolution': addMsg(e.on ? '革命！' : '革命返し！'); break;
+    case 'stairRev': addMsg(`階段革命！（${e.on ? '革命' : '革命返し'}）`); break;
+    case 'sevenStart': addMsg(`${nm(e.idx)}が7を出しました（7渡し）`); break;
     case 'give': addMsg(`${nm(e.from)}が${nm(e.to)}に札を渡しました`); break;
-    case 'spade3': addMsg('スペードの3でジョーカーに勝ちました（この場は流れるまで誰も勝てません）'); telop('スペードの3！'); break;
-    case 'finish': addMsg(`${nm(e.idx)}が${e.rank}位で上がり！`); telop(`${nm(e.idx)} ${e.rank}位上がり`); break;
+    case 'spade3': addMsg('スペードの3でジョーカーに勝ちました（この場は流れるまで誰も勝てません）'); break;
+    case 'finish': addMsg(`${nm(e.idx)}が${e.rank}位で上がり！`); break;
   }
 }
+/* ---------- 演出（テロップ・エフェクト・札の移動） ---------- */
+const reduceMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+function seatEl(pid) { return document.querySelector(`[data-pid="${pid}"]`); }
+// 札を席から飛ばす。faces があれば表向き（10捨て）、なければ裏向き（7渡し）
+function flyCards(fromPid, toEl, n, faces) {
+  const fromEl = seatEl(fromPid);
+  if (reduceMotion() || !fromEl || !toEl) return;
+  const a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
+  const list = faces && faces.length ? faces.slice(0, 5) : Array.from({ length: Math.max(1, Math.min(n || 1, 5)) }, () => null);
+  list.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'flyer';
+    d.innerHTML = c ? cardHTML(c) : '<div class="card back"></div>';
+    document.body.appendChild(d);
+    const w = d.offsetWidth || 40, h = d.offsetHeight || 60;
+    const sx = a.left + a.width / 2 - w / 2, sy = a.top + a.height / 2 - h / 2;
+    const dx = b.left + b.width / 2 - w / 2 - sx, dy = b.top + b.height / 2 - h / 2 - sy;
+    d.style.left = sx + 'px'; d.style.top = sy + 'px';
+    const anim = d.animate([
+      { transform: 'translate(0,0)', opacity: 0 },
+      { opacity: 1, offset: 0.15 },
+      { transform: `translate(${dx}px,${dy}px)`, opacity: 1, offset: 0.85 },
+      { transform: `translate(${dx}px,${dy}px)`, opacity: 0 },
+    ], { duration: 520, delay: i * 60, easing: 'ease-in-out', fill: 'both' });
+    anim.onfinish = () => d.remove();
+  });
+}
+function fxOne(g, e) {
+  switch (e.type) {
+    case 'flush': telop('場が流れました'); break;
+    case 'eight': telop('8切り！'); break;
+    case 'ten': telop('10捨て！'); break;
+    case 'discard': flyCards(e.idx, $('#field'), e.n, e.cards); break;
+    case 'eleven': telop('11バック！'); break;
+    case 'revolution': telop(e.on ? '革命！' : '革命返し！'); break;
+    case 'stairRev': telop('階段革命！'); break;
+    case 'sevenStart': telop('7渡し！'); break;
+    case 'give': flyCards(e.from, seatEl(e.to), e.n); break;
+    case 'spade3': telop('スペードの3！'); break;
+    case 'finish': telop(`${g.players[e.idx].name} ${e.rank}位上がり`); break;
+  }
+}
+function playFx(g, events) { if (g) events.forEach(e => fxOne(g, e)); }
 function afterAction(g, events) {
   events.forEach(e => announce(g, e));
+  // 盤面の描画より後に演出するため、通知用の情報を先に確定させて送る
+  UI.fxSeq++;
+  UI.fxEvents = events.filter(e => FX_TYPES.includes(e.type));
   runFlow();
+  playFx(g, UI.fxEvents);
 }
 function runFlow() {
   const g = UI.game;
@@ -1543,7 +1626,7 @@ function startNewGame() {
   UI.game = Logic.startGame(UI.series);
   UI.selected.clear();
   UI.messages = [];
-  UI.lastPlayId = -1;
+  UI.lastPlayId = -1; UI.fieldSig = '';
   UI.screen = 'game';
   UI.dealAnim = true;
   setTimeout(() => { UI.dealAnim = false; }, 900);
@@ -1814,7 +1897,7 @@ function netBroadcast() {
     rules: UI.series.rules, gameCount: UI.series.gameCount,
   };
   hostPeers().forEach(p => {
-    if (p.seat !== null) netSend(p.dc, { t: 'state', seat: p.seat, game: maskFor(UI.game, p.seat), series, msgs: UI.messages });
+    if (p.seat !== null) netSend(p.dc, { t: 'state', seat: p.seat, game: maskFor(UI.game, p.seat), series, msgs: UI.messages, fx: { seq: UI.fxSeq, events: UI.fxEvents } });
   });
 }
 
@@ -1856,10 +1939,13 @@ function guestApply(m) {
   UI.messages = m.msgs || [];
   const changed = !prev || prev.turn !== m.game.turn || prev.playId !== m.game.playId || prev.phase !== m.game.phase;
   UI.game = m.game;
+  const fxNew = !!m.fx && m.fx.seq !== UI.fxSeen;
+  if (m.fx) UI.fxSeen = m.fx.seq;
   if (changed) UI.selected.clear();
   if (!UI.inGame) { history.pushState({ game: true }, ''); UI.inGame = true; }
   UI.screen = 'game';
   if (first) render(); else renderAll();
+  if (!first && fxNew) playFx(m.game, m.fx.events || []);
   if (m.game.over) { if (UI.overlay !== 'result') openResult(); return; }
   if (UI.overlay === 'result') closeOverlay();
   guestOverlays(m.game);
