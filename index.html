@@ -540,15 +540,17 @@ const Logic = (() => {
     ev.push({ type: kind, on: state.revolution });
   }
 
-  // 10捨て：10の枚数ぶん（手札が足りなければその分まで）、手札から捨てる札を選ぶ。手札がなければ何もしない。
-  function startDiscardOrTurn(state, idx, tens, continueSelf) {
+  // 後処理の順番：7渡し → 10捨て → 8切り（8切りは一番最後）。
+  // 10捨てがあれば先に捨て札を選ばせ、終わってから8切りで場を流す。
+  function finishEffects(state, idx, tens, eight, ev) {
     const p = state.players[idx];
     if (tens > 0 && !p.finished && p.hand.length > 0) {
       state.phase = 'discard';
-      state.pendingDiscard = { from: idx, remaining: Math.min(tens, p.hand.length), continueSelf };
+      state.pendingDiscard = { from: idx, remaining: Math.min(tens, p.hand.length), eight };
       return;
     }
-    finishTurn(state, idx, continueSelf);
+    if (eight) { clearField(state); ev.push({ type: 'eight' }); }
+    finishTurn(state, idx, eight && !p.finished);
   }
   // 捨て札：選んだ札を手札から外し、場には出さず、ゲームから外す（CPUの計算では見えた札として扱う）
   // 必要枚数：残り枚数と手札枚数の小さい方
@@ -571,7 +573,7 @@ const Logic = (() => {
     state.phase = 'play';
     const ev = [{ type: 'discard', idx, n: cards.length }];
     if (p.hand.length === 0) finishPlayer(state, idx, ev);
-    if (!state.over) finishTurn(state, idx, d.continueSelf);
+    if (!state.over) finishEffects(state, idx, 0, d.eight, ev);
     return { ok: true, events: ev };
   }
   function applyPlay(state, idx, cards, mode = 'normal') {
@@ -597,16 +599,10 @@ const Logic = (() => {
       ev.push({ type: 'eleven' });
     }
 
-    // 階段革命は場を流さない。それ以外は8切りで流す。10捨ては場を流さず、10の枚数ぶん捨て札を選ぶ。
-    let flush = false;
-    let tens = 0;
-    if (!info.rev) {
-      if (state.rules.eightCut && nums.includes(8)) { flush = true; ev.push({ type: 'eight' }); }
-      tens = state.rules.tenDump ? nums.filter(n => n === 10).length : 0;
-      if (tens) ev.push({ type: 'ten', n: tens });
-    }
-    if (flush) clearField(state);
-    const continueSelf = flush;
+    // 階段革命は場を流さない。8切りは、7渡し・10捨ての後に最後に行う。10捨ては場を流さない。
+    const eight = !info.rev && !!state.rules.eightCut && nums.includes(8);
+    const tens = (!info.rev && state.rules.tenDump) ? nums.filter(n => n === 10).length : 0;
+    if (tens) ev.push({ type: 'ten', n: tens });
 
     if (p.hand.length === 0) finishPlayer(state, idx, ev);
     if (state.over) return { ok: true, events: ev };
@@ -614,11 +610,11 @@ const Logic = (() => {
     const sevens = nums.filter(n => n === 7).length;
     if (state.rules.sevenPass && sevens > 0 && p.hand.length > 0 && sevenTargets(state, idx).length > 0) {
       state.phase = 'seven';
-      state.pendingSeven = { from: idx, remaining: Math.min(sevens, p.hand.length), continueSelf: continueSelf && !p.finished, tens };
+      state.pendingSeven = { from: idx, remaining: Math.min(sevens, p.hand.length), tens, eight };
       ev.push({ type: 'sevenStart', idx });
       return { ok: true, events: ev };
     }
-    startDiscardOrTurn(state, idx, tens, continueSelf);
+    finishEffects(state, idx, tens, eight, ev);
     return { ok: true, events: ev };
   }
   function applyPass(state, idx) {
@@ -666,7 +662,7 @@ const Logic = (() => {
     state.phase = 'play';
     const from = state.players[s.from];
     if (!from.finished && from.hand.length === 0) finishPlayer(state, s.from, ev);
-    if (!state.over) startDiscardOrTurn(state, s.from, s.tens, s.continueSelf);
+    if (!state.over) finishEffects(state, s.from, s.tens, s.eight, ev);
   }
 
   // 役の割り当て。順位どおりに役を決める。都落ちONで、前回の大富豪が今回1位でなければ大貧民に落とす。
@@ -835,7 +831,7 @@ const RULE_SECTIONS = [
   { title: '階段（通常）', key: 'stairs', text: '同じマークで連続する数字を3枚以上まとめて出せます。場に同じ枚数の階段が出ているときだけ、より強い階段で応じられます。通常どおり場の制約を受け、場は流れません。2はAの次として連続扱いです。' },
   { title: '階段革命', key: 'stairRev', text: '同じマークで連続する4枚以上を、場が空の自分のターン、または同じ枚数でより強い階段革命に対してのみ出せます（しばりも無視）。出すと革命が起きます（「革命」ルールとは独立）。場は流れず、出された手がそのまま場に残るので、次の人は同じ枚数でより強い階段革命で応じます。ジョーカーはワイルドONのときだけ含められます。階段と両方ONのときは、出す前に「階段として出す」か「階段革命として出す」かを選べます。' },
   { title: 'ジョーカーのワイルド化', key: 'wild', text: 'ONのとき、ジョーカーは足りない数字を埋めて、組・階段・階段革命・革命（同じ数字の4枚組）に一緒に出せます。ジョーカーだけの組は従来どおり単独かペアです。' },
-  { title: '8切り', key: 'eightCut', text: '8を含む手を出すと場が流れ、出した人がそのまま次の手を出せます。' },
+  { title: '8切り', key: 'eightCut', text: '8を含む手を出すと場が流れ、出した人がそのまま次の手を出せます。7渡し・10捨てがあるときは、それらを先に行い、8切りは最後に行います。' },
   { title: '10捨て', key: 'tenDump', text: '10を含む手（10の組も含む）を出すと、10の枚数ぶん、手札から捨てる札を任意に選んで捨てます。捨てた札は場に出ず、ゲームから外れます。場は流れません。手札が足りないときは、ある分だけ捨てます。8切りと同時にONにもできます。階段革命の手では発動しません。' },
   { title: '11バック', key: 'elevenBack', text: 'Jを含む手を出すと、その場が流れるまで強さの順が逆転します。革命中は革命と組み合わさり、二重に効いて元に戻ります。' },
   { title: 'しばり', key: 'bind', text: '場の札と同じマークの札しか出せません。出せなければパスします。ジョーカーは例外で、どの場でも出せます。場がジョーカーだけのときは働きません。' },
