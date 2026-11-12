@@ -693,22 +693,27 @@ const Logic = (() => {
 
 /* =====================================================================
  * 2. CPU思考。自分の手札と公開情報だけを受け取る。他人の手札は参照しない。
+ *    強さ：とても弱い（ランダム）< 弱い < 普通 < 強い < とても強い（先読み）
  * ===================================================================== */
 const CPU = (() => {
   const L = Logic;
 
   function view(state, idx) {
     return {
+      me: idx,
       hand: state.players[idx].hand.slice(),
       rules: state.rules,
       revolution: state.revolution,
       elevenBack: state.elevenBack,
       field: state.field ? state.field.cards.slice() : null,
+      fieldObj: state.field ? { ...state.field, cards: state.field.cards.slice() } : null,
       fieldInfo: state.field ? { kind: state.field.kind, len: state.field.len, rev: state.field.rev, power: state.field.power, unbeatable: state.field.unbeatable } : null,
       others: state.players.filter(p => p.id !== idx).map(p => ({
         id: p.id, count: p.hand.length, finished: p.finished, passed: state.passed[p.id],
       })),
+      passed: state.passed.slice(),
       played: state.played.slice(),
+      finishOrder: state.finishOrder.slice(),
       nextSeat: L.nextSeat(state, idx),
     };
   }
@@ -741,6 +746,99 @@ const CPU = (() => {
     return normals[0];
   }
 
+  /* ---------- とても強い：先読み（確定情報の推測つきシミュレーション） ----------
+   * 1. 他の人の手札は見えていない札（場・捨て札・自分の手札以外）から、枚数どおりに無作為に当てはめる。
+   * 2. 候補の手（パスを含む）ごとに、当てはめた手札で最後まで展開し、自分の最終順位の平均を比べる。
+   * 3. 同じ当てはめを全候補で使う（比較の公平さ）。時間の上限を超えたら、それまでの最善を選ぶ。
+   * 展開の後の他の人・自分は、中くらいの強さ（普通）の考え方で打つ。 */
+  const MC = { samples: 8, maxCandidates: 10, budgetMs: 600, maxSteps: 220 };
+
+  function mcPick(v, ctx, items, lead) {
+    const start = Date.now();
+    const n = v.others.length + 1;
+    // 候補：同じ種類・強さの手は1つにまとめ、弱い順に並べて均等に間引く
+    const seen = new Set();
+    const uniq = items.filter(x => {
+      const k = `${x.n}|${x.p}|${x.rev}|${x.flush}`;
+      if (seen.has(k)) return false;
+      seen.add(k); return true;
+    }).sort((a, b) => a.p - b.p);
+    let cands = uniq;
+    if (uniq.length > MC.maxCandidates) {
+      const step = (uniq.length - 1) / (MC.maxCandidates - 1);
+      cands = Array.from({ length: MC.maxCandidates }, (_, i) => uniq[Math.round(i * step)]);
+    }
+    const options = cands.map(x => ({ item: x }));
+    if (!lead) options.push({ item: null }); // パス
+
+    const pool = unseen(v);
+    const sampleHands = () => {
+      const deck = L.shuffle(pool.slice());
+      const hands = {};
+      let k = 0;
+      v.others.forEach(o => { hands[o.id] = o.finished ? [] : deck.slice(k, k + o.count); k += o.count; });
+      return hands;
+    };
+    const makeState = hands => ({
+      players: Array.from({ length: n }, (_, id) => {
+        const o = id === v.me ? null : v.others.find(x => x.id === id);
+        return { id, name: '', isHuman: false, level: '普通', role: null, rank: null,
+          hand: id === v.me ? v.hand.slice() : hands[id].slice(), finished: o ? !!o.finished : false };
+      }),
+      rules: v.rules, revolution: v.revolution, elevenBack: v.elevenBack, revCount: 0,
+      field: v.fieldObj ? { ...v.fieldObj, cards: v.fieldObj.cards.slice() } : null,
+      passed: v.passed.slice(), turn: v.me, finishOrder: v.finishOrder.slice(), over: false,
+      phase: 'play', played: v.played.slice(), exchanges: [], pendingSeven: null, pendingDiscard: null,
+      playId: 0, recorded: true, fallenId: null,
+    });
+    // 展開：他の人と自分の後の手は「普通」で打つ（その先の手番ぶんは、ここでは深く読まない）
+    const rollout = st => {
+      let steps = 0;
+      while (!st.over && steps++ < MC.maxSteps) {
+        if (st.players[v.me].finished) break;
+        if (st.phase === 'seven') {
+          const s = st.pendingSeven;
+          if (!L.giveSevenCards(st, chooseSevenCards(st.players[s.from].hand, L.sevenNeed(st), L.ctxOf(st), '普通')).ok) break;
+          continue;
+        }
+        if (st.phase === 'discard') {
+          const d = st.pendingDiscard;
+          if (!L.discardCards(st, d.from, chooseDiscard(st.players[d.from].hand, L.discardNeed(st, d.from), L.ctxOf(st), '普通')).ok) break;
+          continue;
+        }
+        if (st.phase !== 'play') break;
+        if (L.stuckCheck(st) || st.over) continue;
+        const idx = st.turn;
+        if (st.players[idx].finished) break;
+        const choice = choosePlay(view(st, idx), '普通');
+        if (!choice) { if (!L.applyPass(st, idx).ok) break; }
+        else if (!L.applyPlay(st, idx, choice.cards, choice.rev ? 'rev' : 'normal').ok) break;
+      }
+      return st;
+    };
+    const rankOf = st => (st.players[v.me].rank != null ? st.players[v.me].rank : n);
+
+    const samples = Array.from({ length: MC.samples }, sampleHands);
+    let best = null, bestScore = Infinity;
+    for (const opt of options) {
+      if (best && Date.now() - start > MC.budgetMs) break;
+      let total = 0, left = 0;
+      for (const hands of samples) {
+        const st = makeState(hands);
+        const ok = opt.item
+          ? L.applyPlay(st, v.me, opt.item.cards, opt.item.rev ? 'rev' : 'normal').ok
+          : L.applyPass(st, v.me).ok;
+        if (!ok) { total += n + 1; continue; }
+        rollout(st);
+        total += rankOf(st);
+        left += st.players[v.me].hand.length;
+      }
+      const score = total / samples.length + 0.01 * (left / samples.length);
+      if (score < bestScore) { bestScore = score; best = opt; }
+    }
+    return best ? best.item : null;
+  }
+
   // 戻り値: {cards, rev} または null（パス）
   function choosePlay(v, level) {
     const ctx = ctxOf(v);
@@ -753,7 +851,10 @@ const CPU = (() => {
       flush: flushes(x.cards, v.rules, x.rev),
     }));
     let pick = null;
-    if (level === '弱い') {
+    if (level === 'とても弱い') {
+      // 出す手も、パスも、ほぼ無作為
+      pick = (!lead && Math.random() < 0.4) ? null : rnd(items);
+    } else if (level === '弱い') {
       pick = (!lead && Math.random() < 0.2) ? null : rnd(items);
     } else if (level === '普通') {
       const normals = items.filter(x => !x.rev);
@@ -765,6 +866,8 @@ const CPU = (() => {
         normals.sort((a, b) => a.p - b.p);
         if (normals.length && !(normals[0].p >= 15 && v.hand.length > 3)) pick = normals[0];
       }
+    } else if (level === 'とても強い') {
+      pick = mcPick(v, ctx, items, lead);
     } else {
       pick = strongPick(v, ctx, items, lead);
     }
@@ -772,23 +875,33 @@ const CPU = (() => {
     return pick ? { cards: pick.cards, rev: pick.rev } : null;
   }
 
-  // 7渡し：弱い札から、枚数ぶん渡す（ジョーカーは最後）。戻り値: 渡す札のid
-  function chooseSevenCards(hand, count, ctx) {
-    return hand.slice().sort((a, b) => L.cardPower(a, ctx) - L.cardPower(b, ctx)).slice(0, count).map(c => c.id);
+  // 手札を「残したい価値」の順に並べる（同じ数字の札は、組として残す。ジョーカーは最後）
+  const keepOrder = (hand, ctx, level) => {
+    const sib = c => hand.filter(x => x.num === c.num).length;
+    const keepSets = level === '強い' || level === 'とても強い';
+    const cost = c => L.cardPower(c, ctx) + (keepSets ? (sib(c) - 1) * 3 : 0);
+    return hand.slice().sort((a, b) => cost(a) - cost(b));
+  };
+
+  // 7渡し：渡す札のid（とても弱いは無作為、とても強いは組を残す）
+  function chooseSevenCards(hand, count, ctx, level) {
+    if (level === 'とても弱い') return L.shuffle(hand.slice()).slice(0, count).map(c => c.id);
+    return keepOrder(hand, ctx, level).slice(0, count).map(c => c.id);
   }
 
   // 戻り値: 返す札の配列
   function chooseReturn(hand, count, level, ctx) {
-    const cands = hand.slice();
-    // 弱い札から返す。ジョーカーは最強なので、返す札は最後に回す
-    if (level === '弱い') { const nj = L.shuffle(cands.filter(c => !L.isJoker(c))); return nj.concat(cands.filter(c => L.isJoker(c))).slice(0, count); }
-    const sib = c => hand.filter(x => x.num === c.num).length;
-    const cost = c => L.cardPower(c, ctx) + (level === '強い' ? (sib(c) - 1) * 3 : 0);
-    return cands.slice().sort((a, b) => cost(a) - cost(b)).slice(0, count);
+    if (level === 'とても弱い' || level === '弱い') {
+      // 弱い札から返す。ジョーカーは最強なので、返す札は最後に回す
+      const nj = L.shuffle(hand.filter(c => !L.isJoker(c)));
+      return nj.concat(hand.filter(c => L.isJoker(c))).slice(0, count);
+    }
+    return keepOrder(hand, ctx, level).slice(0, count);
   }
   // 10捨て：弱い札から順に捨てる（ジョーカーは最後）。戻り値: 捨てる札のid
-  function chooseDiscard(hand, count, ctx) {
-    return hand.slice().sort((a, b) => L.cardPower(a, ctx) - L.cardPower(b, ctx)).slice(0, count).map(c => c.id);
+  function chooseDiscard(hand, count, ctx, level) {
+    if (level === 'とても弱い') return L.shuffle(hand.slice()).slice(0, count).map(c => c.id);
+    return keepOrder(hand, ctx, level).slice(0, count).map(c => c.id);
   }
   return { view, choosePlay, chooseSevenCards, chooseReturn, chooseDiscard };
 })();
@@ -799,7 +912,7 @@ const CPU = (() => {
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const CPU_NAMES = ['田中 健太', '佐藤 美咲', '鈴木 翔太', '高橋 結衣', '伊藤 大輝', '渡辺 葵', '山本 蓮'];
-const LEVELS = ['弱い', '普通', '強い'];
+const LEVELS = ['とても弱い', '弱い', '普通', '強い', 'とても強い'];
 const THEMES = [['casino', '洋風カジノ'], ['wafu', '和風（花札）'], ['neon', 'ネオン'], ['forest', '森・木の温もり']];
 const ROLE_ORDER = Logic.ROLE_NAMES;
 
@@ -977,6 +1090,7 @@ function settingsHTML() {
     <div class="seg">${cpuBtns}</div>
     <div class="lbl">CPUの強さ</div>
     ${levels}
+    <p class="small">CPUの強さ：とても弱い＜弱い＜普通＜強い＜とても強い。とても強いは、見えていない札から他の人の手札を推測し、先の展開まで試して手を選びます（考える時間が少しかかります）。</p>
     <div class="lbl">ルール（連続戦の開始時に設定。初期はすべてOFF）</div>
     ${rules}
     <label class="rule"><input id="hlIn" type="checkbox" ${UI.highlight ? 'checked' : ''}>
@@ -1188,7 +1302,7 @@ function runFlow() {
   const cur = g.players[g.turn];
   if (!cur.isHuman) {
     clearTimeout(UI.timer);
-    const delay = cur.level === '弱い' ? 900 : cur.level === '普通' ? 750 : 600;
+    const delay = { 'とても弱い': 1000, '弱い': 900, '普通': 750, '強い': 600, 'とても強い': 450 }[cur.level] || 750;
     UI.timer = setTimeout(() => cpuTurn(g), delay);
   }
 }
@@ -1205,7 +1319,7 @@ function cpuTurn(g) {
 function cpuSeven(g) {
   if (UI.game !== g || g.phase !== 'seven') return;
   const s = g.pendingSeven, p = g.players[s.from];
-  const res = Logic.giveSevenCards(g, CPU.chooseSevenCards(p.hand, Logic.sevenNeed(g), Logic.ctxOf(g)));
+  const res = Logic.giveSevenCards(g, CPU.chooseSevenCards(p.hand, Logic.sevenNeed(g), Logic.ctxOf(g), p.level));
   if (!res.ok) return;
   afterAction(g, res.events);
 }
@@ -1213,7 +1327,7 @@ function cpuSeven(g) {
 function cpuDiscard(g) {
   if (UI.game !== g || g.phase !== 'discard') return;
   const d = g.pendingDiscard, p = g.players[d.from];
-  const res = Logic.discardCards(g, d.from, CPU.chooseDiscard(p.hand, Logic.discardNeed(g, d.from), Logic.ctxOf(g)));
+  const res = Logic.discardCards(g, d.from, CPU.chooseDiscard(p.hand, Logic.discardNeed(g, d.from), Logic.ctxOf(g), p.level));
   if (!res.ok) return;
   afterAction(g, res.events);
 }
@@ -1973,6 +2087,7 @@ window.addEventListener('popstate', () => {
 
 setTheme(UI.theme);
 render();
+
 </script>
 </body>
 </html>
