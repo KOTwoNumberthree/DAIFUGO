@@ -528,6 +528,7 @@ const Logic = (() => {
     state.field = null;
     state.elevenBack = false;
     state.passed.fill(false);
+    state.passRecord = {};
   }
   function finishTurn(state, idx, continueSelf) {
     if (state.over) return;
@@ -619,6 +620,9 @@ const Logic = (() => {
   }
   function applyPass(state, idx) {
     if (!state.field) return fail('場が出ていないのでパスできません');
+    // パスした時点の場と革命・11バックの状態を覚える（極めて強いの推測に使う）
+    state.passRecord = state.passRecord || {};
+    state.passRecord[idx] = { field: { ...state.field, cards: state.field.cards.slice() }, revolution: state.revolution, elevenBack: state.elevenBack };
     state.passed[idx] = true;
     const ev = [{ type: 'pass', idx }];
     const owner = state.field.owner;
@@ -714,6 +718,7 @@ const CPU = (() => {
       passed: state.passed.slice(),
       played: state.played.slice(),
       finishOrder: state.finishOrder.slice(),
+      passRec: { ...(state.passRecord || {}) },
       nextSeat: L.nextSeat(state, idx),
     };
   }
@@ -751,10 +756,15 @@ const CPU = (() => {
    * 2. 候補の手（パスを含む）ごとに、当てはめた手札で最後まで展開し、自分の最終順位の平均を比べる。
    * 3. 同じ当てはめを全候補で使う（比較の公平さ）。時間の上限を超えたら、それまでの最善を選ぶ。
    * 展開の後の他の人・自分は、中くらいの強さ（普通）の考え方で打つ。 */
-  const MC = { samples: 8, maxCandidates: 10, budgetMs: 600, maxSteps: 220 };
+  // 強さごとの探索設定。極めて強いは、パスの情報を推測に使い、展開の手は強いの考え方で打つ
+  const MC_CFG = {
+    'とても強い': { samples: 8, maxCandidates: 10, budgetMs: 600, policy: '普通', usePass: false },
+    '極めて強い': { samples: 12, maxCandidates: 12, budgetMs: 2000, policy: '強い', usePass: true },
+  };
 
-  function mcPick(v, ctx, items, lead) {
+  function mcPick(v, ctx, items, lead, cfg) {
     const start = Date.now();
+    const MC = { ...cfg, maxSteps: 220 };
     const n = v.others.length + 1;
     // 候補：同じ種類・強さの手は1つにまとめ、弱い順に並べて均等に間引く
     const seen = new Set();
@@ -772,12 +782,23 @@ const CPU = (() => {
     if (!lead) options.push({ item: null }); // パス
 
     const pool = unseen(v);
-    const sampleHands = () => {
+    const dealOnce = () => {
       const deck = L.shuffle(pool.slice());
       const hands = {};
       let k = 0;
       v.others.forEach(o => { hands[o.id] = o.finished ? [] : deck.slice(k, k + o.count); k += o.count; });
       return hands;
+    };
+    // パスした人は、パスした時点の場に勝てる札を持っていない、と仮定して配り直す（最大40回。見つからなければ最後の配り方）
+    const passRecs = MC.usePass ? Object.entries(v.passRec || {}).map(([id, rec]) => [+id, rec]).filter(([id]) => id !== v.me) : [];
+    const consistent = hands => passRecs.every(([id, rec]) => {
+      const c = L.ctxOf({ rules: v.rules, revolution: rec.revolution, elevenBack: rec.elevenBack, field: rec.field });
+      return L.legalPlays(hands[id] || [], c).length === 0;
+    });
+    const sampleHands = () => {
+      let h = dealOnce();
+      for (let t = 0; t < 40 && !consistent(h); t++) h = dealOnce();
+      return h;
     };
     const makeState = hands => ({
       players: Array.from({ length: n }, (_, id) => {
@@ -789,6 +810,7 @@ const CPU = (() => {
       field: v.fieldObj ? { ...v.fieldObj, cards: v.fieldObj.cards.slice() } : null,
       passed: v.passed.slice(), turn: v.me, finishOrder: v.finishOrder.slice(), over: false,
       phase: 'play', played: v.played.slice(), exchanges: [], pendingSeven: null, pendingDiscard: null,
+      passRecord: { ...(v.passRec || {}) },
       playId: 0, recorded: true, fallenId: null,
     });
     // 展開：他の人と自分の後の手は「普通」で打つ（その先の手番ぶんは、ここでは深く読まない）
@@ -798,19 +820,19 @@ const CPU = (() => {
         if (st.players[v.me].finished) break;
         if (st.phase === 'seven') {
           const s = st.pendingSeven;
-          if (!L.giveSevenCards(st, chooseSevenCards(st.players[s.from].hand, L.sevenNeed(st), L.ctxOf(st), '普通')).ok) break;
+          if (!L.giveSevenCards(st, chooseSevenCards(st.players[s.from].hand, L.sevenNeed(st), L.ctxOf(st), MC.policy)).ok) break;
           continue;
         }
         if (st.phase === 'discard') {
           const d = st.pendingDiscard;
-          if (!L.discardCards(st, d.from, chooseDiscard(st.players[d.from].hand, L.discardNeed(st, d.from), L.ctxOf(st), '普通')).ok) break;
+          if (!L.discardCards(st, d.from, chooseDiscard(st.players[d.from].hand, L.discardNeed(st, d.from), L.ctxOf(st), MC.policy)).ok) break;
           continue;
         }
         if (st.phase !== 'play') break;
         if (L.stuckCheck(st) || st.over) continue;
         const idx = st.turn;
         if (st.players[idx].finished) break;
-        const choice = choosePlay(view(st, idx), '普通');
+        const choice = choosePlay(view(st, idx), MC.policy);
         if (!choice) { if (!L.applyPass(st, idx).ok) break; }
         else if (!L.applyPlay(st, idx, choice.cards, choice.rev ? 'rev' : 'normal').ok) break;
       }
@@ -866,8 +888,13 @@ const CPU = (() => {
         normals.sort((a, b) => a.p - b.p);
         if (normals.length && !(normals[0].p >= 15 && v.hand.length > 3)) pick = normals[0];
       }
-    } else if (level === 'とても強い') {
-      pick = mcPick(v, ctx, items, lead);
+    } else if (level === '極めて弱い') {
+      // 場に出せるときは7割パスする。出すときは出せる中で一番強い手を出す（強い札を無駄に切る）。親のときは一番強い1枚を出す
+      const byPower = items.slice().sort((a, b) => b.p - a.p);
+      if (!lead && Math.random() < 0.7) pick = null;
+      else pick = lead ? (byPower.find(x => x.n === 1) || byPower[0]) : byPower[0];
+    } else if (level === 'とても強い' || level === '極めて強い') {
+      pick = mcPick(v, ctx, items, lead, MC_CFG[level]);
     } else {
       pick = strongPick(v, ctx, items, lead);
     }
@@ -878,8 +905,9 @@ const CPU = (() => {
   // 手札を「残したい価値」の順に並べる（同じ数字の札は、組として残す。ジョーカーは最後）
   const keepOrder = (hand, ctx, level) => {
     const sib = c => hand.filter(x => x.num === c.num).length;
-    const keepSets = level === '強い' || level === 'とても強い';
+    const keepSets = level === '強い' || level === 'とても強い' || level === '極めて強い';
     const cost = c => L.cardPower(c, ctx) + (keepSets ? (sib(c) - 1) * 3 : 0);
+    if (level === '極めて弱い') return hand.slice().sort((a, b) => L.cardPower(b, ctx) - L.cardPower(a, ctx));
     return hand.slice().sort((a, b) => cost(a) - cost(b));
   };
 
@@ -912,7 +940,7 @@ const CPU = (() => {
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const CPU_NAMES = ['田中 健太', '佐藤 美咲', '鈴木 翔太', '高橋 結衣', '伊藤 大輝', '渡辺 葵', '山本 蓮'];
-const LEVELS = ['とても弱い', '弱い', '普通', '強い', 'とても強い'];
+const LEVELS = ['極めて弱い', 'とても弱い', '弱い', '普通', '強い', 'とても強い', '極めて強い'];
 const THEMES = [['casino', '洋風カジノ'], ['wafu', '和風（花札）'], ['neon', 'ネオン'], ['forest', '森・木の温もり']];
 const ROLE_ORDER = Logic.ROLE_NAMES;
 
@@ -1090,7 +1118,7 @@ function settingsHTML() {
     <div class="seg">${cpuBtns}</div>
     <div class="lbl">CPUの強さ</div>
     ${levels}
-    <p class="small">CPUの強さ：とても弱い＜弱い＜普通＜強い＜とても強い。とても強いは、見えていない札から他の人の手札を推測し、先の展開まで試して手を選びます（考える時間が少しかかります）。</p>
+    <p class="small">CPUの強さ：極めて弱い＜とても弱い＜弱い＜普通＜強い＜とても強い＜極めて強い。とても強いは、見えていない札から他の人の手札を推測し、先の展開まで試して手を選びます。極めて強いは、さらにパスした人の情報も使い、1手あたり最大約2秒考えます（その間は画面が止まることがあります）。</p>
     <div class="lbl">ルール（連続戦の開始時に設定。初期はすべてOFF）</div>
     ${rules}
     <label class="rule"><input id="hlIn" type="checkbox" ${UI.highlight ? 'checked' : ''}>
@@ -1302,7 +1330,7 @@ function runFlow() {
   const cur = g.players[g.turn];
   if (!cur.isHuman) {
     clearTimeout(UI.timer);
-    const delay = { 'とても弱い': 1000, '弱い': 900, '普通': 750, '強い': 600, 'とても強い': 450 }[cur.level] || 750;
+    const delay = { '極めて弱い': 1100, 'とても弱い': 1000, '弱い': 900, '普通': 750, '強い': 600, 'とても強い': 450, '極めて強い': 450 }[cur.level] || 750;
     UI.timer = setTimeout(() => cpuTurn(g), delay);
   }
 }
@@ -1471,6 +1499,7 @@ function renderExchange() {
       : `${esc(other.name)}に返す札を${ex.count}枚選んでください（受け取った札を含む。ジョーカーも選べます）`;
     body = `<p>${text}</p>
       <div class="hand exh" id="exHand">${sortCards(g, who.hand).map(c => cardHTML(c, { sel: UI.exSel.has(c.id) })).join('')}</div>
+      ${mode === 'take' ? `<p class="small">あなたの手札（見るだけ。ここでは選べません）</p><div class="hand exh" id="exMine">${sortCards(g, g.players[ex.receiver].hand).map(c => cardHTML(c)).join('')}</div>` : ''}
       <div class="row"><span>選択 ${UI.exSel.size}/${ex.count}</span>
       <button class="btn" data-act="exNext" ${UI.exSel.size === ex.count ? '' : 'disabled'}>決定へ</button></div>`;
   }
