@@ -67,6 +67,231 @@ body[data-theme=forest]{
   --shadow:0 6px 12px rgba(20,12,0,.4);
 }
 
+/* ---------- テーマ（和紙・マリン・レトロ） ---------- */
+body[data-theme=washi-ink]{
+  --font:'Hiragino Mincho ProN','Yu Mincho',serif;
+  --bg:#ece3cf;
+  --table:repeating-conic-gradient(rgba(0,0,0,.035) 0 25%,transparent 0 50%) 0 0/14px 14px,#e7dcc3;
+  --panel:rgba(255,250,240,.7);--panel-solid:#f6efe0;--text:#1f1b16;
+  --accent:#b5402b;--accent2:#7a1f14;
+  --btn-bg:linear-gradient(#c9533a,#8f2e1d);--btn-fg:#fff8ef;--btn-bd:#5e1d12;
+  --card-face:linear-gradient(160deg,#fffdf6,#f3ecdb);--ink-r:#b5402b;--ink-b:#1f1b16;
+  --joker:linear-gradient(135deg,#d9a441,#b5402b);
+  --radius:2px;--btnr:4px;--frame:#8a7354;
+  --back:repeating-conic-gradient(#34363c 0 25%,#e9e1cc 0 50%) 0 0/12px 12px;
+  --shadow:0 3px 6px rgba(60,40,20,.25);
+}
+body[data-theme=washi-indigo]{
+  --font:'Hiragino Mincho ProN','Yu Mincho',serif;
+  --bg:#e4e8ef;
+  --table:repeating-conic-gradient(rgba(0,0,0,.035) 0 25%,transparent 0 50%) 0 0/14px 14px,#dfe5ee;
+  --panel:rgba(250,252,255,.7);--panel-solid:#f3f6fb;--text:#17213a;
+  --accent:#2c4c8a;--accent2:#1b2f5c;
+  --btn-bg:linear-gradient(#3f6aa8,#22417a);--btn-fg:#fff;--btn-bd:#14284d;
+  --card-face:linear-gradient(160deg,#fbfdff,#eef3fa);--ink-r:#b5402b;--ink-b:#17213a;
+  --joker:linear-gradient(135deg,#7fa6d9,#2c4c8a);
+  --radius:2px;--btnr:4px;--frame:#6a7fa6;
+  --back:repeating-conic-gradient(#1f3566 0 25%,#e8eef8 0 50%) 0 0/12px 12px;
+  --shadow:0 3px 6px rgba(60,40,20,.25);
+}
+body[data-theme=washi-matcha]{
+  --font:'Hiragino Mincho ProN','Yu Mincho',serif;
+  --bg:#e9ecdc;
+  --table:repeating-conic-gradient(rgba(0,0,0,.035) 0 25%,transparent 0 50%) 0 0/14px 14px,#e1e6cc;
+  --panel:rgba(252,253,246,.7);--panel-solid:#f4f6ea;--text:#1f2a18;
+  --accent:#5b7a2a;--accent2:#3a4f1a;
+  --btn-bg:linear-gradient(#86a85a,#55742c);--btn-fg:#fff;--btn-bd:#3a5219;
+  --card-face:linear-gradient(160deg,#fdfef8,#f0f4e2);--ink-r:#b5402b;--ink-b:#1f2a18;
+  --joker:linear-gradient(135deg,#c8d88a,#5b7a2a);
+  --radius:2px;--btnr:4px;--frame:#7a8c5c;
+  --back:repeating-conic-gradient(#3d4a22 0 25%,#eef2de 0 50%) 0 0/12px 12px;
+  --shadow:0 3px 6px rgba(60,40,20,.25);
+}
+body[data-theme=marine-deep]{
+  --font:'Hiragino Sans','Yu Gothic',sans-serif;
+  --bg:#03263a;
+  --table:repeating-radial-gradient(circle at 50% 130%,transparent 0 18px,rgba(255,255,255,.1) 18px 20px),linear-gradient(180deg,#0f5c7d,#063a52);
+  --panel:rgba(4,30,46,.7);--panel-solid:#0b3550;--text:#e7f6ff;
+  --accent:#7fd6ff;--accent2:#ffffff;
+  --btn-bg:linear-gradient(#3fb8e0,#1a6f9a);--btn-fg:#04243a;--btn-bd:#0c4d6e;
+  --card-face:linear-gradient(160deg,#f7fcff,#dff1fb);--ink-r:#d6453d;--ink-b:#0b2a3d;
+  --joker:linear-gradient(135deg,#7fd6ff,#3f8fd6);
+  --radius:10px;--btnr:14px;--frame:#3d8fb5;
+  --back:repeating-radial-gradient(circle at 50% -40%,#d9f1ff 0 3px,#0b3352 3px 10px);
+  --shadow:0 6px 14px rgba(0,30,60,.4);
+}
+body[data-theme=marine-sunset]{
+  --font:'Hiragino Sans','Yu Gothic',sans-serif;
+  --bg:#2a1420;
+  --table:repeating-radial-gradient(circle at 50% 130%,transparent 0 18px,rgba(255,255,255,.1) 18px 20px),linear-gradient(180deg,#d9675b,#7a2d4a);
+  --panel:rgba(40,15,28,.7);--panel-solid:#4a1b33;--text:#fff1e8;
+  --accent:#ffc27a;--accent2:#ff8f70;
+  --btn-bg:linear-gradient(#ffb36b,#e0604f);--btn-fg:#3a0f1c;--btn-bd:#7a2d4a;
+  --card-face:linear-gradient(160deg,#fffaf5,#fbe9dc);--ink-r:#b3262f;--ink-b:#3a1620;
+  --joker:linear-gradient(135deg,#ffc27a,#e0604f);
+  --radius:10px;--btnr:14px;--frame:#c96b5c;
+  --back:repeating-radial-gradient(circle at 50% -40%,#fff0e4 0 3px,#7a2d4a 3px 10px);
+  --shadow:0 6px 14px rgba(0,30,60,.4);
+}
+body[data-theme=marine-teal]{
+  --font:'Hiragino Sans','Yu Gothic',sans-serif;
+  --bg:#04201f;
+  --table:repeating-radial-gradient(circle at 50% 130%,transparent 0 18px,rgba(255,255,255,.1) 18px 20px),linear-gradient(180deg,#137a6e,#07443f);
+  --panel:rgba(4,30,28,.7);--panel-solid:#0a3a36;--text:#e6fff9;
+  --accent:#6fe3c9;--accent2:#c8fff0;
+  --btn-bg:linear-gradient(#5fd3b3,#1d8c78);--btn-fg:#03241f;--btn-bd:#0b5a4e;
+  --card-face:linear-gradient(160deg,#f5fffc,#dcf7f0);--ink-r:#c8423a;--ink-b:#0b2f2a;
+  --joker:linear-gradient(135deg,#6fe3c9,#2aa58f);
+  --radius:10px;--btnr:14px;--frame:#2f9a86;
+  --back:repeating-radial-gradient(circle at 50% -40%,#d7fff6 0 3px,#07443f 3px 10px);
+  --shadow:0 6px 14px rgba(0,30,60,.4);
+}
+body[data-theme=retro-8bit]{
+  --font:'Courier New','Hiragino Sans',monospace;
+  --bg:#0b0b1e;
+  --table:repeating-conic-gradient(#1c1f4a 0 25%,#232a5e 0 50%) 0 0/16px 16px;
+  --panel:rgba(10,10,30,.8);--panel-solid:#15173a;--text:#f2f2ff;
+  --accent:#ffd23f;--accent2:#ff6b6b;
+  --btn-bg:linear-gradient(#ffd23f,#ffd23f);--btn-fg:#111;--btn-bd:#000;
+  --card-face:linear-gradient(160deg,#ffffff,#fff);--ink-r:#d62f2f;--ink-b:#111;
+  --joker:linear-gradient(135deg,#ff6b6b,#ffd23f);
+  --radius:0px;--btnr:0px;--frame:#7c83ff;
+  --back:radial-gradient(circle,#ffd23f 30%,transparent 36%) 0 0/8px 8px,#7a1f3d;
+  --shadow:4px 4px 0 #000;
+}
+body[data-theme=retro-gameboy]{
+  --font:'Courier New','Hiragino Sans',monospace;
+  --bg:#0f380f;
+  --table:repeating-conic-gradient(#306230 0 25%,#2b5a2b 0 50%) 0 0/16px 16px;
+  --panel:rgba(15,56,15,.85);--panel-solid:#1c4a1c;--text:#9bbc0f;
+  --accent:#9bbc0f;--accent2:#d7f5a0;
+  --btn-bg:linear-gradient(#9bbc0f,#9bbc0f);--btn-fg:#0f380f;--btn-bd:#0f380f;
+  --card-face:linear-gradient(160deg,#e0f8cf,#c8e8a8);--ink-r:#306230;--ink-b:#0f380f;
+  --joker:linear-gradient(135deg,#9bbc0f,#306230);
+  --radius:0px;--btnr:0px;--frame:#8bac0f;
+  --back:radial-gradient(circle,#8bac0f 30%,transparent 36%) 0 0/8px 8px,#0f380f;
+  --shadow:4px 4px 0 #000;
+}
+body[data-theme=retro-sepia]{
+  --font:'Courier New','Hiragino Sans',monospace;
+  --bg:#2b2420;
+  --table:repeating-conic-gradient(#5c4a3a 0 25%,#4a3a2e 0 50%) 0 0/16px 16px;
+  --panel:rgba(43,36,32,.8);--panel-solid:#3a302a;--text:#f4e7d0;
+  --accent:#f2a65a;--accent2:#ffd9a8;
+  --btn-bg:linear-gradient(#f2a65a,#f2a65a);--btn-fg:#2b2420;--btn-bd:#2b2420;
+  --card-face:linear-gradient(160deg,#fff6e0,#f0e2bf);--ink-r:#b5402b;--ink-b:#2b2420;
+  --joker:linear-gradient(135deg,#f2a65a,#b5402b);
+  --radius:0px;--btnr:0px;--frame:#a88a62;
+  --back:radial-gradient(circle,#f2a65a 30%,transparent 36%) 0 0/8px 8px,#5a2d1c;
+  --shadow:4px 4px 0 #000;
+}
+
+/* ---------- 色違いテーマ（洋風・和風・ネオン・森） ---------- */
+body[data-theme=casino-navy]{
+  --font:'Hiragino Mincho ProN','Yu Mincho',serif;
+  --bg:#050b1a;
+  --table:radial-gradient(ellipse at 50% 35%,#2a4f8a 0%,#1b3566 55%,#0b1a38 100%);
+  --panel:rgba(6,14,34,.72);--panel-solid:#10224a;--text:#e8eefc;
+  --accent:#c9d6f0;--accent2:#ffffff;
+  --btn-bg:linear-gradient(#e6ecf8,#8fa4c8);--btn-fg:#0b1a38;--btn-bd:#3b4f7a;
+  --card-face:linear-gradient(160deg,#fbfdff,#e6edf8);--ink-r:#b5162f;--ink-b:#14203a;
+  --joker:linear-gradient(135deg,#dbe6ff,#5b7bbf);
+  --radius:8px;--btnr:12px;--frame:#6f86b5;
+  --back:repeating-linear-gradient(45deg,rgba(200,220,255,.3) 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,rgba(200,220,255,.3) 0 2px,transparent 2px 9px),linear-gradient(#2c4c94,#13245a);
+  --shadow:0 6px 14px rgba(0,0,0,.45);
+}
+body[data-theme=casino-wine]{
+  --font:'Hiragino Mincho ProN','Yu Mincho',serif;
+  --bg:#1a0610;
+  --table:radial-gradient(ellipse at 50% 35%,#7a1f3a 0%,#5a1229 55%,#2e0816 100%);
+  --panel:rgba(30,6,16,.72);--panel-solid:#3d0c1f;--text:#f8e6ea;
+  --accent:#e9c35f;--accent2:#fff1c2;
+  --btn-bg:linear-gradient(#f2d17a,#b8862f);--btn-fg:#2b1b04;--btn-bd:#6e4c12;
+  --card-face:linear-gradient(160deg,#fffdf7,#f0e4c6);--ink-r:#b5162f;--ink-b:#161616;
+  --joker:linear-gradient(135deg,#f0cf6a,#7d3c97);
+  --radius:8px;--btnr:12px;--frame:#8a6428;
+  --back:repeating-linear-gradient(45deg,rgba(255,220,140,.28) 0 2px,transparent 2px 9px),repeating-linear-gradient(-45deg,rgba(255,220,140,.28) 0 2px,transparent 2px 9px),linear-gradient(#2b2b36,#14141b);
+  --shadow:0 6px 14px rgba(0,0,0,.45);
+}
+body[data-theme=wafu-black]{
+  --font:'Hiragino Mincho ProN','Yu Mincho',serif;
+  --bg:#0b0b0d;
+  --table:radial-gradient(circle at 50% 0%,rgba(255,255,255,.08),transparent 60%),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 2px,transparent 2px 6px),linear-gradient(170deg,#2a2a2e,#141416 70%);
+  --panel:rgba(20,20,22,.7);--panel-solid:#1e1e22;--text:#efe7d2;
+  --accent:#d9b44a;--accent2:#ff6b5a;
+  --btn-bg:linear-gradient(#d9b44a,#9c7a2a);--btn-fg:#1a1307;--btn-bd:#d9b44a;
+  --card-face:linear-gradient(160deg,#f7f2e4,#e3dccb);--ink-r:#b8262c;--ink-b:#1d1d24;
+  --joker:linear-gradient(135deg,#e4483d,#d9b44a);
+  --radius:4px;--btnr:4px;--frame:#5a5a66;
+  --back:radial-gradient(circle at 50% 100%,transparent 38%,#d9b44a 40%,transparent 43%) 0 0/22px 22px,radial-gradient(circle at 50% 100%,transparent 38%,#d9b44a 40%,transparent 43%) 11px 11px/22px 22px,#1a1a1f;
+  --shadow:0 6px 12px rgba(0,0,0,.4);
+}
+body[data-theme=wafu-enji]{
+  --font:'Hiragino Mincho ProN','Yu Mincho',serif;
+  --bg:#22070d;
+  --table:radial-gradient(circle at 50% 0%,rgba(255,255,255,.08),transparent 60%),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 2px,transparent 2px 6px),linear-gradient(170deg,#6e1424,#3d0a14 70%);
+  --panel:rgba(40,8,16,.7);--panel-solid:#4a0e1c;--text:#f7ead8;
+  --accent:#d9b44a;--accent2:#ffd98a;
+  --btn-bg:linear-gradient(#f2d17a,#b8862f);--btn-fg:#2b1b04;--btn-bd:#6e4c12;
+  --card-face:linear-gradient(160deg,#fbf6e9,#eadfc2);--ink-r:#b8262c;--ink-b:#1d1d24;
+  --joker:linear-gradient(135deg,#e4483d,#d9b44a);
+  --radius:4px;--btnr:4px;--frame:#8c3a48;
+  --back:radial-gradient(circle at 50% 100%,transparent 38%,#d9b44a 40%,transparent 43%) 0 0/22px 22px,radial-gradient(circle at 50% 100%,transparent 38%,#d9b44a 40%,transparent 43%) 11px 11px/22px 22px,#5e0f1d;
+  --shadow:0 6px 12px rgba(0,0,0,.4);
+}
+body[data-theme=neon-green]{
+  --font:'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;
+  --bg:#010a04;
+  --table:radial-gradient(ellipse at 50% 0%,#0d3d1f 0%,#072512 45%,#010a05 100%);
+  --panel:rgba(4,20,10,.7);--panel-solid:#08200f;--text:#e6fff0;
+  --accent:#39ff14;--accent2:#d4ff4a;
+  --btn-bg:linear-gradient(rgba(57,255,20,.1),rgba(57,255,20,.1));--btn-fg:#39ff14;--btn-bd:#39ff14;
+  --card-face:linear-gradient(160deg,#14301d,#0a1a10);--ink-r:#ff4d6d;--ink-b:#cfffd9;
+  --joker:linear-gradient(135deg,#39ff14,#d4ff4a);
+  --radius:6px;--btnr:10px;--frame:#39ff14;
+  --back:repeating-linear-gradient(0deg,transparent 0 6px,rgba(57,255,20,.45) 6px 7px),repeating-linear-gradient(90deg,transparent 0 6px,rgba(212,255,74,.3) 6px 7px),#06180c;
+  --shadow:0 0 14px rgba(57,255,20,.25),0 8px 16px rgba(0,0,0,.5);
+}
+body[data-theme=neon-orange]{
+  --font:'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;
+  --bg:#080200;
+  --table:radial-gradient(ellipse at 50% 0%,#4a1a05 0%,#220b02 45%,#0a0300 100%);
+  --panel:rgba(30,12,4,.7);--panel-solid:#241005;--text:#fff3e6;
+  --accent:#ff9f1c;--accent2:#ffd166;
+  --btn-bg:linear-gradient(rgba(255,159,28,.1),rgba(255,159,28,.1));--btn-fg:#ff9f1c;--btn-bd:#ff9f1c;
+  --card-face:linear-gradient(160deg,#2a160b,#160b05);--ink-r:#ff4d4d;--ink-b:#ffe6cc;
+  --joker:linear-gradient(135deg,#ff9f1c,#ffd166);
+  --radius:6px;--btnr:10px;--frame:#ff9f1c;
+  --back:repeating-linear-gradient(0deg,transparent 0 6px,rgba(255,159,28,.45) 6px 7px),repeating-linear-gradient(90deg,transparent 0 6px,rgba(255,80,40,.3) 6px 7px),#1a0a03;
+  --shadow:0 0 14px rgba(255,159,28,.25),0 8px 16px rgba(0,0,0,.5);
+}
+body[data-theme=forest-autumn]{
+  --font:'Hiragino Maru Gothic ProN','BIZ UDPGothic','Hiragino Sans',sans-serif;
+  --bg:#3a2414;
+  --table:repeating-linear-gradient(90deg,rgba(90,52,20,.18) 0 2px,transparent 2px 13px),repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 9px),linear-gradient(180deg,#b8643a,#8a4422 55%,#6a3218);
+  --panel:rgba(60,32,16,.55);--panel-solid:#4a2a17;--text:#fff3e0;
+  --accent:#f0a04b;--accent2:#ffd27a;
+  --btn-bg:linear-gradient(#ffc27a,#d9782e);--btn-fg:#3a1a05;--btn-bd:#8a4a1e;
+  --card-face:linear-gradient(160deg,#fffaf0,#f6e7cc);--ink-r:#b5402b;--ink-b:#3b2a1a;
+  --joker:linear-gradient(135deg,#f0a04b,#ffd27a);
+  --radius:14px;--btnr:18px;--frame:#7a4522;
+  --back:repeating-linear-gradient(0deg,#c2612a 0 6px,#9a4a1c 6px 12px);
+  --shadow:0 6px 12px rgba(20,12,0,.4);
+}
+body[data-theme=forest-night]{
+  --font:'Hiragino Maru Gothic ProN','BIZ UDPGothic','Hiragino Sans',sans-serif;
+  --bg:#0d1a10;
+  --table:repeating-linear-gradient(90deg,rgba(90,52,20,.18) 0 2px,transparent 2px 13px),repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 9px),linear-gradient(180deg,#2e4a33,#1d3322 55%,#0f1f14);
+  --panel:rgba(10,20,12,.6);--panel-solid:#142a1b;--text:#e4f2dc;
+  --accent:#8fd16a;--accent2:#d8f29a;
+  --btn-bg:linear-gradient(#9fd47a,#4f8a3a);--btn-fg:#0c1a0a;--btn-bd:#2c5a22;
+  --card-face:linear-gradient(160deg,#eef5e4,#d7e6c4);--ink-r:#c2452f;--ink-b:#1d2a18;
+  --joker:linear-gradient(135deg,#8fd16a,#d8f29a);
+  --radius:14px;--btnr:18px;--frame:#3d6b33;
+  --back:repeating-linear-gradient(0deg,#3c6b42 0 6px,#244a2c 6px 12px);
+  --shadow:0 6px 12px rgba(20,12,0,.4);
+}
+
 /* ---------- 共通部品 ---------- */
 .bar{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 10px}
 .bar h1{font-size:18px;margin:0;letter-spacing:.12em;color:var(--accent)}
@@ -98,7 +323,7 @@ body[data-theme=forest]{
 .modebar{display:flex;gap:8px;padding:0 12px 6px;justify-content:center;flex-wrap:wrap}
 .modebar:empty{display:none}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;padding:10px 18px;border-radius:12px;font-size:14px;z-index:70;max-width:90%;text-align:center}
-.telop{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);padding:14px 26px;border-radius:16px;background:rgba(0,0,0,.72);color:var(--accent2);font-size:26px;font-weight:700;letter-spacing:.08em;white-space:nowrap;z-index:60;pointer-events:none;animation:telop 1s ease forwards;text-shadow:0 0 12px var(--accent)}
+.telop{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);padding:14px 26px;border-radius:16px;background:rgba(0,0,0,.72);color:var(--accent2);font-size:26px;font-weight:700;letter-spacing:.08em;white-space:nowrap;z-index:60;pointer-events:none;animation:telop 1.5s ease forwards;text-shadow:0 0 12px var(--accent)}
 .overlay:empty{display:none}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
 .modal{width:100%;max-width:400px;max-height:88dvh;overflow:auto;background:var(--panel-solid);color:var(--text);border:1.5px solid var(--accent);border-radius:16px;padding:16px;box-shadow:0 20px 40px rgba(0,0,0,.6)}
@@ -179,13 +404,13 @@ table.board td:first-child{text-align:left}
 .fcards{display:flex;justify-content:center}
 .fcards .card{margin-left:-14px}
 .fcards .card:first-child{margin-left:0}
-.fcards.fresh .card{animation:slideIn .22s ease-out both}
-.fcards.fresh.multi .card{animation:fadeUp .26s ease-out both}
-.fcards.fresh.multi .card:nth-child(2){animation-delay:.06s}
-.fcards.fresh.multi .card:nth-child(3){animation-delay:.12s}
-.fcards.fresh.multi .card:nth-child(4){animation-delay:.18s}
-.fcards.fresh.multi .card:nth-child(n+5){animation-delay:.24s}
-.field-ghost{position:absolute;left:8px;right:8px;top:8px;bottom:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:fadeOut .4s ease-in forwards}
+.fcards.fresh .card{animation:slideIn .42s ease-out both}
+.fcards.fresh.multi .card{animation:fadeUp .46s ease-out both}
+.fcards.fresh.multi .card:nth-child(2){animation-delay:.1s}
+.fcards.fresh.multi .card:nth-child(3){animation-delay:.2s}
+.fcards.fresh.multi .card:nth-child(4){animation-delay:.3s}
+.fcards.fresh.multi .card:nth-child(n+5){animation-delay:.4s}
+.field-ghost{position:absolute;left:8px;right:8px;top:8px;bottom:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;animation:fadeOut .9s ease-in forwards}
 .flyer{position:fixed;z-index:66;pointer-events:none;margin:0}
 @keyframes fadeUp{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
 @keyframes fadeOut{to{opacity:0}}
@@ -435,7 +660,7 @@ const Logic = (() => {
     const state = {
       players, rules: { ...series.rules }, revolution: false, elevenBack: false, revCount: 0,
       field: null, passed: Array(n).fill(false), turn: 0, finishOrder: [], over: false,
-      phase: 'play', played: [], exchanges: [], pendingSeven: null,
+      phase: 'play', played: [], hist: [], exchanges: [], pendingSeven: null,
       playId: 0, recorded: false, fallenId: null, pendingDiscard: null,
     };
     if (series.rules.exchange && players.every(p => p.role)) {
@@ -602,6 +827,7 @@ const Logic = (() => {
     const nums = info.effNums;
     p.hand = removeCards(p.hand, cards);
     state.played.push(...cards);
+    (state.hist = state.hist || []).push({ idx, pass: false, n: cards.length, p: info.power });
     state.playId++;
     state.passed.fill(false);
     state.field = { cards: cards.slice(), owner: idx, kind: info.kind, len: info.len, rev: info.rev, power: info.power, unbeatable: !!info.unbeatable };
@@ -640,6 +866,7 @@ const Logic = (() => {
     state.passRecord = state.passRecord || {};
     state.passRecord[idx] = { field: { ...state.field, cards: state.field.cards.slice() }, revolution: state.revolution, elevenBack: state.elevenBack };
     state.passed[idx] = true;
+    (state.hist = state.hist || []).push({ idx, pass: true, n: 0, p: 0 });
     const ev = [{ type: 'pass', idx }];
     const owner = state.field.owner;
     const remaining = state.players.filter(p => !p.finished && p.id !== owner && !state.passed[p.id]);
@@ -704,7 +931,7 @@ const Logic = (() => {
 
   return {
     SUITS, SUIT_SYM, ROLE_NAMES, label, isJoker, kindText, createDeck, shuffle,
-    cardPower, isStairShape, playInfo, evaluatePlay, legalPlays, ctxOf, nextSeat, stuckCheck,
+    cardPower, isStairShape, playInfo, evaluatePlay, legalPlays, ctxOf, nextSeat, stuckCheck, isStrongest,
     startGame, pendingExchange, pickStrongest, exchangeGive, exchangeReturn,
     sevenTargets, sevenNeed, discardNeed, giveSevenCards, applyPlay, applyPass, assignRoles, leaderIndex, discardCards,
     roleForRank, removeCards,
@@ -735,6 +962,7 @@ const CPU = (() => {
       played: state.played.slice(),
       finishOrder: state.finishOrder.slice(),
       passRec: { ...(state.passRecord || {}) },
+      hist: (state.hist || []).slice(),
       nextSeat: L.nextSeat(state, idx),
     };
   }
@@ -746,14 +974,35 @@ const CPU = (() => {
   const flushes = (cards, rules, rev) => !!rules.eightCut && cards.some(c => c.num === 8);
   const rnd = a => a[Math.floor(Math.random() * a.length)];
 
+  // 出すと一気に減らせる枚数：7渡し（7の枚数ぶん渡す）・10捨て（10の枚数ぶん捨てる）。手札の残りを超えない
+  function reduceExtra(cards, v) {
+    const left = Math.max(0, v.hand.length - cards.length);
+    const give = v.rules.sevenPass ? Math.min(cards.filter(c => c.num === 7).length, left) : 0;
+    const drop = v.rules.tenDump ? Math.min(cards.filter(c => c.num === 10).length, Math.max(0, left - give)) : 0;
+    return give + drop;
+  }
+  // 革命を狙える手札か：今は革命中でなく、同じ数字の組や階段で革命になる手が手札にある
+  // その手を出すと革命になるか（階段革命＝rev、同じ数字の組＝4枚（4枚以上で革命の設定なら5枚以上も））
+  const makesRevolution = (x, ctx) => !ctx.revolution && (x.rev || (!!ctx.rules.revolution && x.cards.length >= 4
+    && L.playInfo(x.cards, ctx, 'normal').kind === 'set' && (x.cards.length === 4 || !!ctx.rules.revMin4)));
+  function revIntentCtx(hand, ctx) {
+    if (ctx.revolution) return false;
+    const c = { rules: ctx.rules, revolution: false, elevenBack: false, field: null, fieldInfo: null };
+    return L.legalPlays(hand, c).some(x => makesRevolution(x, c));
+  }
+  const revIntent = v => revIntentCtx(v.hand, { rules: v.rules, revolution: v.revolution });
+
   function strongPick(v, ctx, items, lead) {
     const pool = unseen(v);
     const bestOf = cards => cards.reduce((a, b) => (L.cardPower(b, ctx) > L.cardPower(a, ctx) ? b : a));
     const isTop = c => { const pw = L.cardPower(c, ctx); return !pool.some(u => L.cardPower(u, ctx) > pw); };
     const urgent = v.others.some(o => !o.finished && o.count <= 2);
+    const intent = revIntent(v);
     if (lead) {
       items.forEach(x => {
-        x.score = x.n * 2 - x.p * 0.3 + (isTop(bestOf(x.cards)) ? 3 : 0) + (x.rev ? 1 : 0) + (x.flush ? 2 : 0);
+        x.score = x.n * 2 - x.p * 0.3 + (isTop(bestOf(x.cards)) ? 3 : 0) + (x.rev ? 1 : 0) + (x.flush ? 2 : 0)
+          + x.ext * 2.5                                   // 7渡し・10捨てで一気に減らせる
+          + (intent ? (x.revMake ? 4 : x.p * 0.15) : 0);  // 革命を狙うときは革命を優先し、強い札を早めに使う
       });
       items.sort((a, b) => b.score - a.score);
       return items[0];
@@ -763,6 +1012,16 @@ const CPU = (() => {
     const fieldInfo = v.fieldInfo || { power: 0 };
     const flushOpt = normals.find(x => x.flush && fieldInfo.power >= 13);
     if (flushOpt) return flushOpt;
+    if (intent) {
+      const revOpt = items.find(x => x.revMake);
+      if (revOpt) return revOpt;
+      // 革命を狙うとき：ジョーカーを除く強い札を、先に出して消費する
+      const early = normals.filter(x => x.p >= 12 && !x.cards.some(c => L.isJoker(c)));
+      if (early.length) return early[early.length - 1];
+    }
+    // 7渡し・10捨てで一気に減らせる手（強すぎない札に限る）
+    const reducer = normals.filter(x => x.ext >= 2 && x.p < 30).sort((a, b) => b.ext - a.ext || a.p - b.p)[0];
+    if (reducer) return reducer;
     if (!urgent && normals[0].p >= 15 && v.hand.length > 3) return null;
     return normals[0];
   }
@@ -776,6 +1035,8 @@ const CPU = (() => {
   const MC_CFG = {
     'とても強い': { samples: 8, maxCandidates: 10, budgetMs: 600, policy: '普通', usePass: false },
     '極めて強い': { samples: 12, maxCandidates: 12, budgetMs: 2000, policy: '強い', usePass: true },
+    // 圧倒的に強い：推測の数を増やし、順位だけでなく「最下位になる確率」も避ける。終盤は推測を増やす
+    '圧倒的に強い': { samples: 32, maxCandidates: 16, budgetMs: 1800, maxIters: 6000, policy: '強い', usePass: true, bottomW: 0.5, endgameBoost: 1.5, treeDepth: 3 },
   };
 
   function mcPick(v, ctx, items, lead, cfg) {
@@ -785,14 +1046,19 @@ const CPU = (() => {
     // 候補：同じ種類・強さの手は1つにまとめ、弱い順に並べて均等に間引く
     const seen = new Set();
     const uniq = items.filter(x => {
-      const k = `${x.n}|${x.p}|${x.rev}|${x.flush}`;
+      const k = `${x.n}|${x.p}|${x.rev}|${x.flush}|${x.ext}`;
       if (seen.has(k)) return false;
       seen.add(k); return true;
     }).sort((a, b) => a.p - b.p);
     let cands = uniq;
     if (uniq.length > MC.maxCandidates) {
-      const step = (uniq.length - 1) / (MC.maxCandidates - 1);
-      cands = Array.from({ length: MC.maxCandidates }, (_, i) => uniq[Math.round(i * step)]);
+      // 7渡し・10捨てで減らせる手と、革命の手は、間引きの前に必ず候補に残す
+      const must = uniq.filter(x => x.ext > 0 || x.revMake);
+      const rest = uniq.filter(x => !must.includes(x));
+      const room = Math.max(2, MC.maxCandidates - must.length);
+      const step = (rest.length - 1) / Math.max(1, room - 1);
+      const picked = rest.length ? Array.from({ length: Math.min(room, rest.length) }, (_, i) => rest[Math.round(i * step)]) : [];
+      cands = must.concat(picked.filter(x => !must.includes(x)));
     }
     const options = cands.map(x => ({ item: x }));
     if (!lead) options.push({ item: null }); // パス
@@ -856,40 +1122,269 @@ const CPU = (() => {
     };
     const rankOf = st => (st.players[v.me].rank != null ? st.players[v.me].rank : n);
 
-    const samples = Array.from({ length: MC.samples }, sampleHands);
+    // 終盤（手札が少ない）は推測を増やして、精度を上げる
+    const sampleCount = Math.round(MC.samples * (v.hand.length <= 4 && MC.endgameBoost ? MC.endgameBoost : 1));
+    const samples = Array.from({ length: sampleCount }, sampleHands);
+    const bottomW = MC.bottomW || 0;
     let best = null, bestScore = Infinity;
     for (const opt of options) {
       if (best && Date.now() - start > MC.budgetMs) break;
-      let total = 0, left = 0;
+      let total = 0, left = 0, bottom = 0;
       for (const hands of samples) {
         const st = makeState(hands);
         const ok = opt.item
           ? L.applyPlay(st, v.me, opt.item.cards, opt.item.rev ? 'rev' : 'normal').ok
           : L.applyPass(st, v.me).ok;
-        if (!ok) { total += n + 1; continue; }
+        if (!ok) { total += n + 1; bottom++; continue; }
         rollout(st);
-        total += rankOf(st);
+        const rk = rankOf(st);
+        total += rk;
+        if (rk === n) bottom++;
         left += st.players[v.me].hand.length;
       }
-      const score = total / samples.length + 0.01 * (left / samples.length);
+      const score = total / samples.length + bottomW * (bottom / samples.length) + 0.01 * (left / samples.length);
       if (score < bestScore) { bestScore = score; best = opt; }
     }
     return best ? best.item : null;
   }
 
+
+  // ---------- 圧倒的に強い：不完全情報向けの探索（ISMCTS）と推定 ----------
+  const runSync = gen => { let r; do { r = gen.next(); } while (!r.done); return r.value; };
+  const actKey = (cards, rev) => (rev ? 'R' : 'N') + cards.map(c => c.id).sort().join('.');
+  const cpOf = c => Math.min(15, L.cardPower(c, { revolution: false, elevenBack: false }));
+  // 相手ごとの傾向：パスが少ない人ほど、場に勝てる強い札を持っていそうだと推定する（推定の信号はパス率だけ）
+  function ovTendency(v) {
+    const turns = {}, passes = {};
+    (v.hist || []).forEach(h => {
+      if (h.idx === v.me) return;
+      turns[h.idx] = (turns[h.idx] || 0) + 1;
+      if (h.pass) passes[h.idx] = (passes[h.idx] || 0) + 1;
+    });
+    const t = {};
+    v.others.forEach(o => {
+      const rate = turns[o.id] ? (passes[o.id] || 0) / turns[o.id] : 0.4;
+      t[o.id] = Math.max(-1, Math.min(1, (0.4 - rate) * 2.5));
+    });
+    return t;
+  }
+  // 推測の配り方：傾向に応じて、強い札を持っていそうな相手ほど強い札を多く配る（重み付きの抽出）
+  function dealWeighted(pool, others, tilt) {
+    const remaining = pool.slice();
+    const hands = {};
+    others.forEach(o => {
+      const hand = [];
+      const k = o.finished ? 0 : o.count;
+      for (let i = 0; i < k && remaining.length; i++) {
+        const ws = remaining.map(c => Math.exp(tilt[o.id] * (cpOf(c) - 8) / 6));
+        const total = ws.reduce((a, b) => a + b, 0);
+        let r = Math.random() * total, j = 0;
+        for (; j < ws.length - 1; j++) { r -= ws[j]; if (r <= 0) break; }
+        hand.push(remaining.splice(j, 1)[0]);
+      }
+      hands[o.id] = hand;
+    });
+    return hands;
+  }
+  // 手札全体の評価：上がるまでに必要な手番数の見積もり（組・階段・ジョーカー・上がり禁止の札を考慮）
+  function finishEstimate(cards, ctx) {
+    if (!cards.length) return 0;
+    const jokers = cards.filter(c => L.isJoker(c)).length;
+    const ranks = [...new Set(cards.filter(c => !L.isJoker(c)).map(c => c.num))].sort((a, b) => a - b);
+    let groups = ranks.length;
+    if (ctx.rules.stairs) {
+      let run = 1;
+      for (let i = 1; i <= ranks.length; i++) {
+        if (i < ranks.length && ranks[i] === ranks[i - 1] + 1) { run++; continue; }
+        if (run >= 3) groups -= run - 1; // 3枚以上の連続は階段1手にまとめられる
+        run = 1;
+      }
+    }
+    if (jokers) groups = Math.max(1, groups - 1); // ジョーカーは一つの組を補える
+    if (ctx.rules.noStrongFinish) groups += cards.filter(c => L.isStrongest(c, ctx)).length / cards.length; // 最強の札は最後に残りやすい
+    return Math.max(0, groups);
+  }
+  function capItems(items, max) {
+    const seen = new Set();
+    const uniq = items.filter(x => {
+      const k = `${x.n}|${x.p}|${x.rev}|${x.flush}|${x.ext}`;
+      if (seen.has(k)) return false;
+      seen.add(k); return true;
+    }).sort((a, b) => a.p - b.p);
+    if (uniq.length <= max) return uniq;
+    const must = uniq.filter(x => x.ext > 0 || x.revMake);
+    const rest = uniq.filter(x => !must.includes(x));
+    const room = Math.max(2, max - must.length);
+    const step = (rest.length - 1) / Math.max(1, room - 1);
+    const picked = rest.length ? Array.from({ length: Math.min(room, rest.length) }, (_, i) => rest[Math.round(i * step)]) : [];
+    return must.concat(picked.filter(x => !must.includes(x)));
+  }
+  // ISMCTS：推測した手札ごとに同じ木を辿り、行動の成績を木で共有する。木の手番は合法手生成と既存のルール判定だけを使う
+  // 協調的に画面を止めないよう、途中で yield する（同期でも非同期でも同じ処理）
+  function* ovGen(v, ctx, items, lead, cfg) {
+    const n = v.others.length + 1;
+    const bottomW = cfg.bottomW || 0;
+    const deadline = Date.now() + cfg.budgetMs;
+    const pool = unseen(v);
+    const tilt = ovTendency(v);
+    const passRecs = Object.entries(v.passRec || {}).map(([id, rec]) => [+id, rec]).filter(([id]) => id !== v.me);
+    const consistent = hands => passRecs.every(([id, rec]) => {
+      const c = L.ctxOf({ rules: v.rules, revolution: rec.revolution, elevenBack: rec.elevenBack, field: rec.field });
+      return L.legalPlays(hands[id] || [], c).length === 0;
+    });
+    const sampleHands = () => {
+      let h = dealWeighted(pool, v.others, tilt);
+      for (let t = 0; t < 40 && !consistent(h); t++) h = dealWeighted(pool, v.others, tilt);
+      return h;
+    };
+    const makeState = hands => ({
+      players: Array.from({ length: n }, (_, id) => {
+        const o = id === v.me ? null : v.others.find(x => x.id === id);
+        return { id, name: '', isHuman: false, level: '普通', role: null, rank: null,
+          hand: id === v.me ? v.hand.slice() : hands[id].slice(), finished: o ? !!o.finished : false };
+      }),
+      rules: v.rules, revolution: v.revolution, elevenBack: v.elevenBack, revCount: 0,
+      field: v.fieldObj ? { ...v.fieldObj, cards: v.fieldObj.cards.slice() } : null,
+      passed: v.passed.slice(), turn: v.me, finishOrder: v.finishOrder.slice(), over: false,
+      phase: 'play', played: v.played.slice(), hist: (v.hist || []).slice(), exchanges: [], pendingSeven: null, pendingDiscard: null,
+      passRecord: { ...(v.passRec || {}) }, playId: 0, recorded: true, fallenId: null,
+    });
+    const rollout = st => {
+      let steps = 0;
+      while (!st.over && steps++ < 220) {
+        if (st.players[v.me].finished) break;
+        if (st.phase === 'seven') {
+          const s = st.pendingSeven;
+          if (!L.giveSevenCards(st, chooseSevenCards(st.players[s.from].hand, L.sevenNeed(st), L.ctxOf(st), cfg.policy)).ok) break;
+          continue;
+        }
+        if (st.phase === 'discard') {
+          const d = st.pendingDiscard;
+          if (!L.discardCards(st, d.from, chooseDiscard(st.players[d.from].hand, L.discardNeed(st, d.from), L.ctxOf(st), cfg.policy)).ok) break;
+          continue;
+        }
+        if (st.phase !== 'play') break;
+        if (L.stuckCheck(st) || st.over) continue;
+        const idx = st.turn;
+        if (st.players[idx].finished) break;
+        const choice = choosePlay(view(st, idx), cfg.policy);
+        if (!choice) { if (!L.applyPass(st, idx).ok) break; }
+        else if (!L.applyPlay(st, idx, choice.cards, choice.rev ? 'rev' : 'normal').ok) break;
+      }
+      return st;
+    };
+    const rankOf = st => (st.players[v.me].rank != null ? st.players[v.me].rank : n);
+    const rewardOf = st => { const rk = rankOf(st); return (n - rk) / (n - 1) - (rk === n ? bottomW : 0); };
+    const tree = new Map();
+    const nodeFor = k => { let m = tree.get(k); if (!m) { m = new Map(); tree.set(k, m); } return m; };
+    const legalActs = st => {
+      const acts = L.legalPlays(st.players[st.turn].hand, L.ctxOf(st)).map(x => ({ cards: x.cards, rev: x.rev, key: actKey(x.cards, x.rev) }));
+      if (st.field) acts.push({ cards: null, rev: false, key: 'pass' });
+      return acts;
+    };
+    const applyAct = (st, idx, a) => (a.cards ? L.applyPlay(st, idx, a.cards, a.rev ? 'rev' : 'normal') : L.applyPass(st, idx)).ok;
+    const C = 0.6;
+    const pickUcb = (node, acts) => {
+      const untried = acts.filter(a => !node.has(a.key));
+      if (untried.length) return { a: rnd(untried), fresh: true };
+      let total = 0;
+      acts.forEach(a => { total += node.get(a.key).N; });
+      let best = null, bs = -Infinity;
+      for (const a of acts) {
+        const s = node.get(a.key);
+        const sc = s.W / s.N + C * Math.sqrt(Math.log(total + 1) / s.N);
+        if (sc > bs) { bs = sc; best = a; }
+      }
+      return { a: best, fresh: false };
+    };
+    const rootActs = capItems(items, cfg.maxCandidates).map(x => ({ item: x, key: actKey(x.cards, x.rev) }));
+    if (!lead) rootActs.push({ item: null, cards: null, rev: false, key: 'pass' });
+    const root = nodeFor('R');
+    let iters = 0, lastYield = Date.now();
+    if (rootActs.length === 1) return rootActs[0].item; // 選択肢が1つなら探索しない
+    while (iters < cfg.maxIters && (iters < 60 || Date.now() < deadline)) {
+      iters++;
+      if (Date.now() - lastYield > 8) { yield; lastYield = Date.now(); }
+      const st = makeState(sampleHands());
+      const path = [];
+      const sel = pickUcb(root, rootActs);
+      if (sel.fresh) root.set(sel.a.key, { N: 0, W: 0 });
+      const ra = sel.a.item !== undefined ? { cards: sel.a.item ? sel.a.item.cards : null, rev: sel.a.item ? sel.a.item.rev : false, key: sel.a.key } : sel.a;
+      if (!applyAct(st, v.me, ra)) continue;
+      path.push(['R', ra.key]);
+      let key = 'R|' + ra.key, depth = 0;
+      while (!st.over && st.phase === 'play' && depth < cfg.treeDepth) {
+        if (st.players[st.turn].finished) break;
+        const acts = legalActs(st);
+        if (!acts.length) break;
+        const node = nodeFor(key);
+        const s2 = pickUcb(node, acts);
+        if (s2.fresh) node.set(s2.a.key, { N: 0, W: 0 });
+        path.push([key, s2.a.key]);
+        if (!applyAct(st, st.turn, s2.a)) break;
+        if (s2.fresh) break;
+        key += '|' + s2.a.key; depth++;
+      }
+      const r = rewardOf(rollout(st));
+      for (const [k, ak] of path) { const s = nodeFor(k).get(ak); if (s) { s.N++; s.W += r; } }
+    }
+    // 最終判断：平均の成績から、手札の残りの見積もり（少ないほど良い）を引く
+    let best = null, bestScore = -Infinity;
+    for (const a of rootActs) {
+      const s = root.get(a.key);
+      if (!s || !s.N) continue;
+      const remain = a.item ? v.hand.filter(c => !a.item.cards.some(d => d.id === c.id)) : v.hand;
+      const score = s.W / s.N - 0.03 * finishEstimate(remain, ctx);
+      if (score > bestScore) { bestScore = score; best = a; }
+    }
+    if (!best) best = rootActs[0];
+    return best && best.item ? best.item : null;
+  }
+  // 非同期：画面の操作を止めないよう、少しずつ計算して結果を渡す
+  function choosePlayAsync(v, level, cb) {
+    if (level !== '圧倒的に強い') { cb(choosePlay(v, level)); return; }
+    const ctx = ctxOf(v);
+    const plays = L.legalPlays(v.hand, ctx);
+    if (!plays.length) { cb(null); return; }
+    const gen = ovGen(v, ctx, playItems(v, ctx, plays), !v.field, MC_CFG[level]);
+    const step = () => {
+      const t = Date.now();
+      for (;;) {
+        const r = gen.next();
+        if (r.done) { cb(r.value ? { cards: r.value.cards, rev: r.value.rev } : null); return; }
+        if (Date.now() - t > 12) break;
+      }
+      setTimeout(step, 0);
+    };
+    step();
+  }
+
   // 戻り値: {cards, rev} または null（パス）
+  function playItems(v, ctx, plays) {
+    return plays.map(x => ({
+      cards: x.cards, rev: x.rev, n: x.cards.length,
+      p: L.playInfo(x.cards, ctx, x.rev ? 'rev' : 'normal').power,
+      flush: flushes(x.cards, v.rules, x.rev),
+      ext: reduceExtra(x.cards, v),
+      revMake: makesRevolution(x, ctx),
+    }));
+  }
   function choosePlay(v, level) {
     const ctx = ctxOf(v);
     const plays = L.legalPlays(v.hand, ctx);
     if (!plays.length) return null;
     const lead = !v.field;
-    const items = plays.map(x => ({
-      cards: x.cards, rev: x.rev, n: x.cards.length,
-      p: L.playInfo(x.cards, ctx, x.rev ? 'rev' : 'normal').power,
-      flush: flushes(x.cards, v.rules, x.rev),
-    }));
+    const items = playItems(v, ctx, plays);
     let pick = null;
-    if (level === 'とても弱い') {
+    if (level === '圧倒的に強い') {
+      pick = runSync(ovGen(v, ctx, items, lead, MC_CFG[level]));
+      return pick ? { cards: pick.cards, rev: pick.rev } : null;
+    }
+    if (level === '圧倒的に弱い') {
+      // 戦略がなく、目先の1手だけで決める。場があれば気まぐれにパスし、場が空なら一番強い手を出す（強い札を早く使う）
+      if (lead) { const singles = items.filter(x => x.n === 1); pick = (singles.length ? singles : items).slice().sort((a, b) => b.p - a.p)[0]; }
+      else pick = Math.random() < 0.8 ? null : items.slice().sort((a, b) => b.p - a.p)[0];
+    } else if (level === 'とても弱い') {
       // 出す手も、パスも、ほぼ無作為
       pick = (!lead && Math.random() < 0.4) ? null : rnd(items);
     } else if (level === '弱い') {
@@ -921,9 +1416,10 @@ const CPU = (() => {
   // 手札を「残したい価値」の順に並べる（同じ数字の札は、組として残す。ジョーカーは最後）
   const keepOrder = (hand, ctx, level) => {
     const sib = c => hand.filter(x => x.num === c.num).length;
-    const keepSets = level === '強い' || level === 'とても強い' || level === '極めて強い';
-    const cost = c => L.cardPower(c, ctx) + (keepSets ? (sib(c) - 1) * 3 : 0);
-    if (level === '極めて弱い') return hand.slice().sort((a, b) => L.cardPower(b, ctx) - L.cardPower(a, ctx));
+    const keepSets = level === '強い' || level === 'とても強い' || level === '極めて強い' || level === '圧倒的に強い';
+    const intent = keepSets && revIntentCtx(hand, ctx);
+    const cost = c => (intent ? -L.cardPower(c, ctx) : L.cardPower(c, ctx)) + (keepSets ? (sib(c) - 1) * 3 : 0);
+    if (level === '極めて弱い' || level === '圧倒的に弱い') return hand.slice().sort((a, b) => L.cardPower(b, ctx) - L.cardPower(a, ctx));
     return hand.slice().sort((a, b) => cost(a) - cost(b));
   };
 
@@ -947,7 +1443,7 @@ const CPU = (() => {
     if (level === 'とても弱い') return L.shuffle(hand.slice()).slice(0, count).map(c => c.id);
     return keepOrder(hand, ctx, level).slice(0, count).map(c => c.id);
   }
-  return { view, choosePlay, chooseSevenCards, chooseReturn, chooseDiscard };
+  return { view, choosePlay, choosePlayAsync, chooseSevenCards, chooseReturn, chooseDiscard };
 })();
 
 /* =====================================================================
@@ -956,8 +1452,13 @@ const CPU = (() => {
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const CPU_NAMES = ['田中 健太', '佐藤 美咲', '鈴木 翔太', '高橋 結衣', '伊藤 大輝', '渡辺 葵', '山本 蓮'];
-const LEVELS = ['極めて弱い', 'とても弱い', '弱い', '普通', '強い', 'とても強い', '極めて強い'];
-const THEMES = [['casino', '洋風カジノ'], ['wafu', '和風（花札）'], ['neon', 'ネオン'], ['forest', '森・木の温もり']];
+const LEVELS = ['圧倒的に弱い', '極めて弱い', 'とても弱い', '弱い', '普通', '強い', 'とても強い', '極めて強い', '圧倒的に強い'];
+const THEMES = [['casino', '洋風カジノ'], ['casino-navy', '洋風カジノ（ネイビー）'], ['casino-wine', '洋風カジノ（ワイン）'], ['wafu', '和風（花札）'],
+  ['wafu-black', '和風（墨黒）'], ['wafu-enji', '和風（臙脂）'], ['neon', 'ネオン'], ['neon-green', 'ネオン（緑）'],
+  ['neon-orange', 'ネオン（橙）'], ['forest', '森・木の温もり'], ['forest-autumn', '森（秋）'], ['forest-night', '森（夜）'],
+  ['washi-ink', '和紙（墨）'], ['washi-indigo', '和紙（藍）'], ['washi-matcha', '和紙（若草）'], ['marine-deep', 'マリン（深海）'],
+  ['marine-sunset', 'マリン（夕焼け）'], ['marine-teal', 'マリン（翡翠）'], ['retro-8bit', 'レトロ（8bit）'], ['retro-gameboy', 'レトロ（携帯機）'],
+  ['retro-sepia', 'レトロ（セピア）']];
 const ROLE_ORDER = Logic.ROLE_NAMES;
 
 const RULE_DEFS = [
@@ -1134,7 +1635,7 @@ function settingsHTML() {
     <div class="seg">${cpuBtns}</div>
     <div class="lbl">CPUの強さ</div>
     ${levels}
-    <p class="small">CPUの強さ：極めて弱い＜とても弱い＜弱い＜普通＜強い＜とても強い＜極めて強い。とても強いは、見えていない札から他の人の手札を推測し、先の展開まで試して手を選びます。極めて強いは、さらにパスした人の情報も使い、1手あたり最大約2秒考えます（その間は画面が止まることがあります）。</p>
+    <p class="small">CPUの強さ：圧倒的に弱い＜極めて弱い＜とても弱い＜弱い＜普通＜強い＜とても強い＜極めて強い＜圧倒的に強い。圧倒的に弱いは戦略を持たず、強い札を早く使いがちです。圧倒的に強いは、極めて強いより多くの推測で手を比べ、最下位になりにくい手を選びます（1手あたり最大約2秒、その間は画面が止まることがあります）。とても強いは、見えていない札から他の人の手札を推測し、先の展開まで試して手を選びます。極めて強いは、さらにパスした人の情報も使い、1手あたり最大約2秒考えます（その間は画面が止まることがあります）。</p>
     <div class="lbl">ルール（連続戦の開始時に設定。初期はすべてOFF）</div>
     ${rules}
     <label class="rule"><input id="hlIn" type="checkbox" ${UI.highlight ? 'checked' : ''}>
@@ -1214,7 +1715,7 @@ function renderField(g) {
       gh.className = 'field-ghost';
       gh.innerHTML = prevHTML;
       el.appendChild(gh);
-      setTimeout(() => gh.remove(), 650);
+      setTimeout(() => gh.remove(), 950);
     }
     return;
   }
@@ -1293,7 +1794,7 @@ function telop(text) {
   el.classList.remove('hidden');
   el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
   clearTimeout(telopTimer);
-  telopTimer = setTimeout(() => el.classList.add('hidden'), 1000);
+  telopTimer = setTimeout(() => el.classList.add('hidden'), 1500);
 }
 let toastTimer = null;
 function toast(text) {
@@ -1345,7 +1846,7 @@ function flyCards(fromPid, toEl, n, faces) {
       { opacity: 1, offset: 0.15 },
       { transform: `translate(${dx}px,${dy}px)`, opacity: 1, offset: 0.85 },
       { transform: `translate(${dx}px,${dy}px)`, opacity: 0 },
-    ], { duration: 520, delay: i * 60, easing: 'ease-in-out', fill: 'both' });
+    ], { duration: 950, delay: i * 90, easing: 'ease-in-out', fill: 'both' });
     anim.onfinish = () => d.remove();
   });
 }
@@ -1413,7 +1914,7 @@ function runFlow() {
   const cur = g.players[g.turn];
   if (!cur.isHuman) {
     clearTimeout(UI.timer);
-    const delay = { '極めて弱い': 1100, 'とても弱い': 1000, '弱い': 900, '普通': 750, '強い': 600, 'とても強い': 450, '極めて強い': 450 }[cur.level] || 750;
+    const delay = { '圧倒的に弱い': 800, '極めて弱い': 1100, 'とても弱い': 1000, '弱い': 900, '普通': 750, '強い': 600, 'とても強い': 450, '極めて強い': 450, '圧倒的に強い': 450 }[cur.level] || 750;
     UI.timer = setTimeout(() => cpuTurn(g), delay);
   }
 }
@@ -1421,11 +1922,15 @@ function cpuTurn(g) {
   if (UI.game !== g || g.over || g.phase !== 'play') return;
   const idx = g.turn, p = g.players[idx];
   if (p.isHuman) return;
-  const choice = CPU.choosePlay(CPU.view(g, idx), p.level);
-  let res = choice ? Logic.applyPlay(g, idx, choice.cards, choice.rev ? 'rev' : 'normal') : Logic.applyPass(g, idx);
-  if (!res.ok && g.field) res = Logic.applyPass(g, idx);
-  if (!res.ok) return;
-  afterAction(g, res.events);
+  // 思考は非同期（画面の操作を止めない）。途中で別の操作があれば結果は捨てる
+  const token = (UI.cpuToken = {});
+  CPU.choosePlayAsync(CPU.view(g, idx), p.level, choice => {
+    if (UI.cpuToken !== token || UI.game !== g || g.over || g.phase !== 'play' || g.turn !== idx) return;
+    let res = choice ? Logic.applyPlay(g, idx, choice.cards, choice.rev ? 'rev' : 'normal') : Logic.applyPass(g, idx);
+    if (!res.ok && g.field) res = Logic.applyPass(g, idx);
+    if (!res.ok) return;
+    afterAction(g, res.events);
+  });
 }
 function cpuSeven(g) {
   if (UI.game !== g || g.phase !== 'seven') return;
