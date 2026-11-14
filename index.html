@@ -445,6 +445,8 @@ table.board td:first-child{text-align:left}
 .qrbox svg{display:block;width:100%;height:auto}
 .scanbox{background:#000;border-radius:10px;overflow:hidden;max-width:360px;margin:8px auto;aspect-ratio:1/1}
 .scanbox video{width:100%;height:100%;object-fit:cover;display:block}
+.pend{display:grid;gap:8px;margin:8px 0 14px;padding:12px;border-radius:12px;background:rgba(0,0,0,.18)}
+.pend p{margin:0}
 </style>
 </head>
 <body data-theme="casino">
@@ -12867,8 +12869,9 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 const Sound = (() => {
   const KEY = 'daifugou_sound';
   let enabled = true;
+  const persistOn = () => { try { return localStorage.getItem('daifugou_persist') !== '0'; } catch (e) { return true; } };
   try {
-    const saved = localStorage.getItem(KEY);
+    const saved = persistOn() ? localStorage.getItem(KEY) : null;
     if (saved === '0' || saved === 'false') enabled = false;
   } catch (e) {}
 
@@ -13353,7 +13356,7 @@ const Sound = (() => {
 
   function setEnabled(v) {
     enabled = !!v;
-    try { localStorage.setItem(KEY, enabled ? '1' : '0'); } catch (e) {}
+    if (persistOn()) { try { localStorage.setItem(KEY, enabled ? '1' : '0'); } catch (e) {} }
     if (enabled) select(true);
     return enabled;
   }
@@ -14578,6 +14581,7 @@ function render() {
 }
 function setTheme(t) {
   UI.theme = t;
+  Persist.save();
   document.body.dataset.theme = t;
   document.querySelectorAll('[data-theme-pick]').forEach(s => { s.value = t; });
 }
@@ -14589,7 +14593,10 @@ function titleHTML() {
   return `<div class="title-screen">
     <div class="fan">${cardHTML({ id: -1, suit: 'S', num: 15 })}${cardHTML({ id: -2, suit: 'H', num: 14 })}${cardHTML({ id: -3, suit: 'X', num: 16 })}</div>
     <div class="logo">大富豪</div>
-    <p class="small">スマホで遊べる、CPUとの一人用大富豪</p>
+    <p class="small">スマホで遊べる、CPU対戦・みんなで遊べる大富豪</p>
+    ${Persist.pending() ? `<div class="pend"><p class="small">前回の連続戦（${Persist.pending().gameCount}ゲーム）の記録が残っています。</p>
+      <button class="btn big" data-act="resumeSeries">続きから再開</button>
+      <button class="btn small ghost" data-act="discardSeries">記録を消す</button></div>` : ''}
     <button class="btn big" data-act="newGame">はじめから</button>
     <button class="btn big" data-act="mp">みんなで遊ぶ（同じWi-Fi）</button>
     <button class="btn ghost" data-act="rules">ルール説明</button>
@@ -14621,8 +14628,8 @@ function settingsHTML() {
     <div class="seg">${cpuBtns}</div>
     <div class="lbl">CPUの強さ</div>
     ${levels}
-    <p class="small">CPUの強さ：圧倒的に弱い＜極めて弱い＜とても弱い＜弱い＜普通＜強い＜とても強い＜極めて強い＜圧倒的に強い。圧倒的に弱いは戦略を持たず、強い札を早く使いがちです。圧倒的に強いは、極めて強いより多くの推測で手を比べ、最下位になりにくい手を選びます（1手あたり最大約2秒、その間は画面が止まることがあります）。とても強いは、見えていない札から他の人の手札を推測し、先の展開まで試して手を選びます。極めて強いは、さらにパスした人の情報も使い、1手あたり最大約2秒考えます（その間は画面が止まることがあります）。</p>
-    <div class="lbl">ルール（連続戦の開始時に設定。初期はすべてOFF）</div>
+    <p class="small">CPUの強さ：圧倒的に弱い＜極めて弱い＜とても弱い＜弱い＜普通＜強い＜とても強い＜極めて強い＜圧倒的に強い。圧倒的に弱いは戦略を持たず、強い札を早く使いがちです。圧倒的に強いは、極めて強いより多くの推測で手を比べ、最下位になりにくい手を選びます（1手あたり最大約2秒かけて非同期で探索します）。とても強いは、見えていない札から他の人の手札を推測し、先の展開まで試して手を選びます。極めて強いは、さらにパスした人の情報も使い、1手あたり最大約2秒考えます（その間は画面が止まることがあります）。</p>
+    <div class="lbl">ルール（連続戦の開始時に設定。保存ON時は前回の設定を引き継ぎます）</div>
     ${rules}
     <label class="rule"><input id="hlIn" type="checkbox" ${UI.highlight ? 'checked' : ''}>
       <div><b>出せるカードのハイライト</b><small>ONで出せる札を光らせ、出せない札を暗くします</small></div></label>
@@ -14630,6 +14637,8 @@ function settingsHTML() {
       <div><b>効果音（卓上のカード音）</b><small>カードを切る・出す・パスするなどの現実的な卓上音を鳴らします（いつでも切り替え可能）</small></div></label>
     <label class="lbl">テーマ
       <select class="sel" data-theme-pick>${themeOptions()}</select></label>
+    <label class="rule"><input id="persistIn" type="checkbox" ${Persist.enabled() ? 'checked' : ''}>
+      <div><b>設定と記録をブラウザに保存する（データ永続化）</b><small>ONのとき、名前・CPU設定・ルール・テーマ・連続戦の記録を、このブラウザの中だけに保存します。外部へは送りません</small></div></label>
     <button class="btn big" data-act="start">ゲーム開始</button>
   </div>`;
 }
@@ -15118,6 +15127,81 @@ function exToggle(id) {
   renderExchange();
 }
 
+/* ---------- データ永続化（ブラウザの localStorage。OFFのときは保存も復元もしない） ---------- */
+const Persist = (() => {
+  const FLAG = 'daifugou_persist', DATA = 'daifugou_settings_v1', SOUND = 'daifugou_sound';
+  let pendingSeries = null;   // 前回の連続戦（読み込んだが、まだ続き再開を選んでいない）
+  const safe = f => { try { return f(); } catch (e) { return undefined; } };
+  const enabled = () => safe(() => localStorage.getItem(FLAG)) !== '0';   // 初期値はON
+  const snapSeries = s => ({
+    rules: { ...s.rules }, gameCount: s.gameCount,
+    players: s.players.map(p => ({ name: p.name, isHuman: p.isHuman, level: p.level, record: { ...p.record }, seatName: p.seatName })),
+  });
+  // 保存する内容。連続戦はネット対戦中は保存しない（相手の接続は再読み込みで消えるため）
+  function save() {
+    if (!enabled()) return;
+    const series = UI.series ? (UI.net ? null : snapSeries(UI.series)) : pendingSeries;
+    const data = {
+      v: 1,
+      draft: { name: UI.draft.name, cpuCount: UI.draft.cpuCount, levels: UI.draft.levels.slice(), rules: { ...UI.draft.rules } },
+      theme: UI.theme, highlight: UI.highlight, sortMode: UI.sortMode, series,
+    };
+    safe(() => localStorage.setItem(DATA, JSON.stringify(data)));
+  }
+  function setEnabled(on) {
+    safe(() => localStorage.setItem(FLAG, on ? '1' : '0'));
+    if (on) {
+      safe(() => localStorage.setItem(SOUND, Sound.enabled ? '1' : '0'));
+      save();
+    } else {
+      // OFFにしたら、保存済みの設定・記録・効果音の設定を消す。以後は書き込まない
+      safe(() => { localStorage.removeItem(DATA); localStorage.removeItem(SOUND); });
+      pendingSeries = null;
+    }
+    return on;
+  }
+  // 起動時に復元する（壊れたデータは無視する）
+  function load() {
+    if (!enabled()) return;
+    const raw = safe(() => localStorage.getItem(DATA));
+    if (!raw) return;
+    let s; try { s = JSON.parse(raw); } catch (e) { return; }
+    if (!s || typeof s !== 'object') return;
+    const d = s.draft || {};
+    if (typeof d.name === 'string') UI.draft.name = d.name.slice(0, 10);
+    if (Number.isInteger(d.cpuCount) && d.cpuCount >= 2 && d.cpuCount <= 7) UI.draft.cpuCount = d.cpuCount;
+    if (Array.isArray(d.levels)) UI.draft.levels = Array.from({ length: 7 }, (_, i) => (LEVELS.includes(d.levels[i]) ? d.levels[i] : '普通'));
+    if (d.rules && typeof d.rules === 'object') {
+      const r = defaultRules();
+      RULE_DEFS.forEach(x => { if (typeof d.rules[x.key] === 'boolean') r[x.key] = d.rules[x.key]; });
+      UI.draft.rules = normalizeRules(r);
+    }
+    if (typeof s.theme === 'string' && THEMES.some(([v]) => v === s.theme)) UI.theme = s.theme;
+    if (typeof s.highlight === 'boolean') UI.highlight = s.highlight;
+    if (s.sortMode === 'num' || s.sortMode === 'suit') UI.sortMode = s.sortMode;
+    const se = s.series;
+    if (se && Array.isArray(se.players) && se.players.length >= 3 && se.players.length <= 8 && Number.isInteger(se.gameCount)) pendingSeries = se;
+  }
+  const pending = () => pendingSeries;
+  // 前回の連続戦の続きから（次のゲームを始める）
+  function resume() {
+    const s = pendingSeries; if (!s) return;
+    pendingSeries = null;
+    const players = s.players.map((p, i) => {
+      const rec = emptyRecord();
+      ROLE_ORDER.forEach(r => { if (Number.isInteger(p.record && p.record[r])) rec[r] = p.record[r]; });
+      return { name: String(p.name || 'CPU').slice(0, 10), isHuman: i === 0, level: LEVELS.includes(p.level) ? p.level : '普通',
+        record: rec, role: null, seatName: i === 0 ? null : (p.seatName || CPU_NAMES[i - 1]) };
+    });
+    UI.series = { players, rules: normalizeRules({ ...defaultRules(), ...s.rules }), gameCount: s.gameCount };
+    UI.myId = 0;
+    save();
+    startNewGame();
+  }
+  function discard() { pendingSeries = null; save(); }
+  return { enabled, setEnabled, save, load, pending, resume, discard };
+})();
+
 /* ---------- 連続戦・記録 ---------- */
 function startSeries() {
   readSettingsDOM();
@@ -15136,6 +15220,7 @@ function startSeries() {
   }
   humans.forEach((h, s) => { if (h.peer) { h.peer.seat = s; netSend(h.peer.dc, { t: 'welcome', seat: s }); } });
   UI.series = { players, rules: { ...normalizeRules(d.rules) }, gameCount: 0 };
+  Persist.save();
   UI.myId = 0;
   startNewGame();
 }
@@ -15167,12 +15252,14 @@ function recordGame(g) {
     sp.record[p.role]++;
   });
   UI.series.gameCount++;
+  Persist.save();
 }
 function endAll() {
   clearTimeout(UI.timer);
   netLeave();
   UI.myId = 0;
   UI.series = null; UI.game = null; UI.screen = 'title'; UI.inGame = false;
+  Persist.save();
   closeOverlay();
   render();
 }
@@ -15215,7 +15302,7 @@ function openBoard() {
   const rows = s.players.map(p => `<tr><td>${esc(p.name)}</td>${ROLE_ORDER.map(r => `<td>${p.record[r]}</td>`).join('')}<td>${s.gameCount}</td></tr>`).join('');
   openOverlay('board', `<div class="modal">
     <h2>スコアボード</h2>
-    <p class="small">この連続戦：${s.gameCount}ゲーム（連続戦を終了すると記録は消えます）</p>
+    <p class="small">この連続戦：${s.gameCount}ゲーム（${Persist.enabled() ? '保存ONのため、次回起動時も続きから再開できます。連続戦を終了すると記録は消えます' : '保存OFFのため、再読み込みすると記録は消えます。連続戦を終了しても消えます'}）</p>
     <div class="tablewrap"><table class="board"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
     <div class="row"><button class="btn big" data-act="closeBoard">閉じる</button></div></div>`);
 }
@@ -15236,7 +15323,9 @@ function readSettingsDOM() {
   document.querySelectorAll('[data-rule]').forEach(c => { d.rules[c.dataset.rule] = c.checked; });
   const h = $('#hlIn'); if (h) UI.highlight = h.checked;
   const s = $('#sndIn'); if (s && s.checked !== Sound.enabled) Sound.setEnabled(s.checked);
+  const pi = $('#persistIn'); if (pi && pi.checked !== Persist.enabled()) Persist.setEnabled(pi.checked);
   normalizeRules(d.rules);
+  Persist.save();
 }
 
 
@@ -15791,6 +15880,7 @@ function endSeriesNow() {
   clearTimeout(UI.timer);
   netSeriesEnded();
   UI.series = null; UI.game = null; UI.inGame = false;
+  Persist.save();
   UI.screen = 'settings'; closeOverlay(); render();
 }
 
@@ -15820,15 +15910,17 @@ const ACTIONS = {
       render();
     } catch (e) { toast('参加コードが正しくありません'); netLeave(); }
   },
-  newGame: () => { UI.screen = 'settings'; render(); },
+  resumeSeries: () => { Persist.resume(); },
+  discardSeries: () => askConfirm('前回の連続戦の記録を消します。', '記録を消す', () => { Persist.discard(); render(); }),
+  newGame: () => (Persist.pending() ? askConfirm('前回の連続戦の記録を消して、新しく始めます。', '新しく始める', () => { Persist.discard(); UI.screen = 'settings'; render(); }) : (UI.screen = 'settings', render())),
   toTitle: () => { netLeave(); UI.screen = 'title'; render(); },
   rules: () => openRules(),
   cpu: b => { readSettingsDOM(); UI.draft.cpuCount = +b.dataset.n; render(); },
   start: () => startSeries(),
   play: () => humanPlay(),
   pass: () => humanPass(),
-  sort: () => { UI.sortMode = UI.sortMode === 'num' ? 'suit' : 'num'; Sound.slide(2); renderHand(UI.game); renderButtons(UI.game); },
-  hl: () => { UI.highlight = !UI.highlight; renderAll(); },
+  sort: () => { UI.sortMode = UI.sortMode === 'num' ? 'suit' : 'num'; Persist.save(); Sound.slide(2); renderHand(UI.game); renderButtons(UI.game); },
+  hl: () => { UI.highlight = !UI.highlight; Persist.save(); renderAll(); },
   snd: () => {
     Sound.toggle();
     if (UI.screen === 'game' && UI.game) renderButtons(UI.game);
@@ -15897,7 +15989,7 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.matches('[data-theme-pick]')) { setTheme(t.value); return; }
-  if ((UI.screen === 'settings' || UI.screen === 'hostlobby') && (t.matches('[data-rule]') || t.matches('[data-draft]') || t.id === 'hlIn' || t.id === 'sndIn')) {
+  if ((UI.screen === 'settings' || UI.screen === 'hostlobby') && (t.matches('[data-rule]') || t.matches('[data-draft]') || t.id === 'hlIn' || t.id === 'sndIn' || t.id === 'persistIn')) {
     readSettingsDOM();
     render();
   }
@@ -15909,6 +16001,7 @@ window.addEventListener('popstate', () => {
   }
 });
 
+Persist.load();
 setTheme(UI.theme);
 render();
 
