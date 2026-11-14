@@ -447,6 +447,66 @@ table.board td:first-child{text-align:left}
 .scanbox video{width:100%;height:100%;object-fit:cover;display:block}
 .pend{display:grid;gap:8px;margin:8px 0 14px;padding:12px;border-radius:12px;background:rgba(0,0,0,.18)}
 .pend p{margin:0}
+
+/* ---------- タブレット・PC：画面幅いっぱいに広げ、札・文字・ボタンを大きくする ---------- */
+@media (min-width:768px){
+  #app{max-width:none;width:100%;box-shadow:none}
+  .card{width:76px;height:108px}
+  .card .ix{font-size:16px}
+  .card .ix small{font-size:13px}
+  .card .pp{font-size:18px}
+  .card .pp.dense{font-size:15px}
+  .card .pp.big{font-size:40px}
+  .card .panel i{font-size:34px}
+  .hand{min-height:168px;padding:26px 32px 16px 28px}
+  .hand .card{margin-left:-30px}
+  .hand .card:first-child{margin-left:0}
+  .field{min-height:170px;gap:10px;padding:12px}
+  .fcards .card{margin-left:-20px}
+  .field-wrap{padding:8px 24px}
+  .fowner{font-size:16px}
+  .opps{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:10px 24px}
+  .opp{padding:10px 12px}
+  .oname{font-size:17px}
+  .olv{font-size:14px}
+  .ocount{font-size:15px}
+  .ostack{height:64px;margin-top:6px}
+  .ostack .card{width:38px;height:56px;margin-left:-20px;border-radius:6px}
+  .opps.crowded .opp{width:210px}
+  .opps.crowded .ostack{height:56px}
+  .opps.crowded .ostack .card{width:32px;height:48px;margin-left:-17px}
+  .me-h{padding:0 32px;font-size:17px}
+  .exh{min-height:150px}
+  .actions{padding:14px 32px 28px;gap:18px}
+  .btn{min-height:50px;font-size:17px}
+  .actions .btn{min-height:60px;font-size:19px}
+  .modal{max-width:620px}
+  .title-screen .btn.big{width:360px;min-height:60px;font-size:20px}
+  .logo{font-size:64px}
+}
+@media (min-width:1100px){
+  .card{width:88px;height:126px}
+  .card .ix{font-size:18px}
+  .card .ix small{font-size:14px}
+  .card .pp{font-size:21px}
+  .card .pp.dense{font-size:17px}
+  .card .pp.big{font-size:46px}
+  .card .panel i{font-size:38px}
+  .hand{min-height:190px;padding:28px 40px 18px 36px}
+  .hand .card{margin-left:-34px}
+  .fcards .card{margin-left:-24px}
+  .field{min-height:200px}
+  .opps{grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;padding:12px 36px}
+  .oname{font-size:19px}
+  .olv{font-size:15px}
+  .ocount{font-size:16px}
+  .ostack .card{width:44px;height:64px;margin-left:-22px}
+  .ostack{height:74px}
+  .opps.crowded .opp{width:250px}
+  .me-h{padding:0 40px}
+  .actions{padding:16px 40px 32px}
+  .field-wrap{padding:10px 36px}
+}
 </style>
 </head>
 <body data-theme="casino">
@@ -13419,7 +13479,8 @@ const Logic = (() => {
   }
   function ctxOf(state) {
     return { rules: state.rules, revolution: state.revolution, elevenBack: state.elevenBack,
-      field: state.field ? state.field.cards : null, fieldInfo: state.field };
+      field: state.field ? state.field.cards : null, fieldInfo: state.field,
+      bindActive: state.bind ? !!state.bind.active : !!state.bindActive };
   }
   // 実効的な強さ。革命と11バックの二重適用で元に戻る。ジョーカーは影響を受けない。
   function cardPower(c, ctx) {
@@ -13499,7 +13560,7 @@ const Logic = (() => {
     }
     if (!f || !f.length) return p;
     if (fi.rev) return fail('場が階段革命です。同じ枚数の階段革命で応じてください');
-    if (ctx.rules.bind) {
+    if (ctx.rules.bind && ctx.bindActive) {
       const suits = new Set(f.filter(c => !isJoker(c)).map(c => c.suit));
       if (suits.size && cards.some(c => !isJoker(c) && !suits.has(c.suit)))
         return fail('しばり中です。場と同じマークの札を出してください');
@@ -13608,7 +13669,7 @@ const Logic = (() => {
       players, rules: { ...series.rules }, revolution: false, elevenBack: false, revCount: 0,
       field: null, passed: Array(n).fill(false), turn: 0, finishOrder: [], over: false,
       phase: 'play', played: [], hist: [], exchanges: [], pendingSeven: null,
-      playId: 0, recorded: false, fallenId: null, pendingDiscard: null,
+      playId: 0, recorded: false, fallenId: null, pendingDiscard: null, bind: freshBind(),
     };
     if (series.rules.exchange && players.every(p => p.role)) {
       const pairs = [['大貧民', '大富豪', 2]];
@@ -13710,8 +13771,19 @@ const Logic = (() => {
       finalizeStuck(state);
     }
   }
+  // しばり：同じマークの札が2回連続で出されると発動し、場が流れるまで続く
+  const freshBind = () => ({ suit: null, streak: 0, active: false });
+  function updateBind(state, cards) {
+    const nat = cards.filter(c => !isJoker(c));
+    const suit = nat.length && nat.every(c => c.suit === nat[0].suit) ? nat[0].suit : null;
+    const b = state.bind;
+    if (suit && suit === b.suit) b.streak++;
+    else { b.suit = suit; b.streak = suit ? 1 : 0; }
+    if (b.streak >= 2) b.active = true;
+  }
   function clearField(state) {
     state.field = null;
+    state.bind = freshBind();
     state.elevenBack = false;
     state.passed.fill(false);
     state.passRecord = {};
@@ -13772,6 +13844,7 @@ const Logic = (() => {
     const nums = info.effNums;
     p.hand = removeCards(p.hand, cards);
     state.played.push(...cards);
+    if (ctx.rules.bind) updateBind(state, cards);
     (state.hist = state.hist || []).push({ idx, pass: false, n: cards.length, p: info.power });
     state.playId++;
     state.passed.fill(false);
@@ -13809,7 +13882,7 @@ const Logic = (() => {
     if (!state.field) return fail('場が出ていないのでパスできません');
     // パスした時点の場と革命・11バックの状態を覚える（極めて強いの推測に使う）
     state.passRecord = state.passRecord || {};
-    state.passRecord[idx] = { field: { ...state.field, cards: state.field.cards.slice() }, revolution: state.revolution, elevenBack: state.elevenBack };
+    state.passRecord[idx] = { field: { ...state.field, cards: state.field.cards.slice() }, revolution: state.revolution, elevenBack: state.elevenBack, bindActive: !!(state.bind && state.bind.active) };
     state.passed[idx] = true;
     (state.hist = state.hist || []).push({ idx, pass: true, n: 0, p: 0 });
     const ev = [{ type: 'pass', idx }];
@@ -13898,6 +13971,8 @@ const CPU = (() => {
       rules: state.rules,
       revolution: state.revolution,
       elevenBack: state.elevenBack,
+      bind: state.bind ? { ...state.bind } : null,
+      bindActive: state.bind ? !!state.bind.active : false,
       field: state.field ? state.field.cards.slice() : null,
       fieldObj: state.field ? { ...state.field, cards: state.field.cards.slice() } : null,
       fieldInfo: state.field ? { kind: state.field.kind, len: state.field.len, rev: state.field.rev, power: state.field.power, unbeatable: state.field.unbeatable } : null,
@@ -13916,7 +13991,7 @@ const CPU = (() => {
     const seen = new Set([...v.played.map(c => c.id), ...v.hand.map(c => c.id)]);
     return L.createDeck().filter(c => !seen.has(c.id));
   }
-  const ctxOf = v => ({ rules: v.rules, revolution: v.revolution, elevenBack: v.elevenBack, field: v.field, fieldInfo: v.fieldInfo });
+  const ctxOf = v => ({ rules: v.rules, revolution: v.revolution, elevenBack: v.elevenBack, field: v.field, fieldInfo: v.fieldInfo, bindActive: v.bindActive });
   const flushes = (cards, rules, rev) => !!rules.eightCut && cards.some(c => c.num === 8);
   const rnd = a => a[Math.floor(Math.random() * a.length)];
 
@@ -14020,7 +14095,7 @@ const CPU = (() => {
     // パスした人は、パスした時点の場に勝てる札を持っていない、と仮定して配り直す（最大40回。見つからなければ最後の配り方）
     const passRecs = MC.usePass ? Object.entries(v.passRec || {}).map(([id, rec]) => [+id, rec]).filter(([id]) => id !== v.me) : [];
     const consistent = hands => passRecs.every(([id, rec]) => {
-      const c = L.ctxOf({ rules: v.rules, revolution: rec.revolution, elevenBack: rec.elevenBack, field: rec.field });
+      const c = L.ctxOf({ rules: v.rules, revolution: rec.revolution, elevenBack: rec.elevenBack, field: rec.field, bindActive: rec.bindActive });
       return L.legalPlays(hands[id] || [], c).length === 0;
     });
     const sampleHands = () => {
@@ -14035,6 +14110,7 @@ const CPU = (() => {
           hand: id === v.me ? v.hand.slice() : hands[id].slice(), finished: o ? !!o.finished : false };
       }),
       rules: v.rules, revolution: v.revolution, elevenBack: v.elevenBack, revCount: 0,
+      bind: v.bind ? { ...v.bind } : { suit: null, streak: 0, active: false },
       field: v.fieldObj ? { ...v.fieldObj, cards: v.fieldObj.cards.slice() } : null,
       passed: v.passed.slice(), turn: v.me, finishOrder: v.finishOrder.slice(), over: false,
       phase: 'play', played: v.played.slice(), exchanges: [], pendingSeven: null, pendingDiscard: null,
@@ -14135,17 +14211,28 @@ const CPU = (() => {
   // 手札全体の評価：上がるまでに必要な手番数の見積もり（組・階段・ジョーカー・上がり禁止の札を考慮）
   function finishEstimate(cards, ctx) {
     if (!cards.length) return 0;
-    const jokers = cards.filter(c => L.isJoker(c)).length;
-    const ranks = [...new Set(cards.filter(c => !L.isJoker(c)).map(c => c.num))].sort((a, b) => a - b);
-    let groups = ranks.length;
+    const nat = cards.filter(c => !L.isJoker(c));
+    const jokers = cards.length - nat.length;
+    // 階段は「同じマークで連続する数字3枚以上」。マークごとに連続の塊を数え、その分は1手にまとめる
+    let stairGroups = 0;
+    const stairCards = new Set();
     if (ctx.rules.stairs) {
-      let run = 1;
-      for (let i = 1; i <= ranks.length; i++) {
-        if (i < ranks.length && ranks[i] === ranks[i - 1] + 1) { run++; continue; }
-        if (run >= 3) groups -= run - 1; // 3枚以上の連続は階段1手にまとめられる
-        run = 1;
-      }
+      const bySuit = {};
+      nat.forEach(c => { (bySuit[c.suit] = bySuit[c.suit] || []).push(c); });
+      Object.values(bySuit).forEach(list => {
+        const cs = list.slice().sort((a, b) => a.num - b.num);
+        let run = [];
+        const closeRun = () => { if (run.length >= 3) { stairGroups++; run.forEach(c => stairCards.add(c)); } run = []; };
+        cs.forEach(c => {
+          if (run.length && c.num === run[run.length - 1].num + 1) run.push(c);
+          else { closeRun(); run = [c]; }
+        });
+        closeRun();
+      });
     }
+    // 階段に使わなかった札は、同じ数字ごとに1手（組）
+    const restRanks = new Set(nat.filter(c => !stairCards.has(c)).map(c => c.num));
+    let groups = stairGroups + restRanks.size;
     if (jokers) groups = Math.max(1, groups - 1); // ジョーカーは一つの組を補える
     if (ctx.rules.noStrongFinish) groups += cards.filter(c => L.isStrongest(c, ctx)).length / cards.length; // 最強の札は最後に残りやすい
     return Math.max(0, groups);
@@ -14182,7 +14269,7 @@ const CPU = (() => {
     const tilt = ovTendency(v);
     const passRecs = Object.entries(v.passRec || {}).map(([id, rec]) => [+id, rec]).filter(([id]) => id !== v.me);
     const consistent = hands => passRecs.every(([id, rec]) => {
-      const c = L.ctxOf({ rules: v.rules, revolution: rec.revolution, elevenBack: rec.elevenBack, field: rec.field });
+      const c = L.ctxOf({ rules: v.rules, revolution: rec.revolution, elevenBack: rec.elevenBack, field: rec.field, bindActive: rec.bindActive });
       return L.legalPlays(hands[id] || [], c).length === 0;
     });
     let exactSet = null;
@@ -14217,6 +14304,7 @@ const CPU = (() => {
           hand: id === v.me ? v.hand.slice() : hands[id].slice(), finished: o ? !!o.finished : false };
       }),
       rules: v.rules, revolution: v.revolution, elevenBack: v.elevenBack, revCount: 0,
+      bind: v.bind ? { ...v.bind } : { suit: null, streak: 0, active: false },
       field: v.fieldObj ? { ...v.fieldObj, cards: v.fieldObj.cards.slice() } : null,
       passed: v.passed.slice(), turn: v.me, finishOrder: v.finishOrder.slice(), over: false,
       phase: 'play', played: v.played.slice(), hist: (v.hist || []).slice(), exchanges: [], pendingSeven: null, pendingDiscard: null,
@@ -14457,7 +14545,7 @@ const RULE_DEFS = [
   { key: 'eightCut', name: '8切り', desc: '8を含む手で場が流れ、出した人が続けて出せる' },
   { key: 'tenDump', name: '10捨て', desc: '10を含む手で、10の枚数ぶん手札から任意の札を捨てる（場は流れない）' },
   { key: 'elevenBack', name: '11バック', desc: 'Jを含む手で、その場が流れるまで強さの順が逆転' },
-  { key: 'bind', name: 'しばり（マークしばり）', desc: '場と同じマークの札しか出せない（ジョーカーは例外）' },
+  { key: 'bind', name: 'しばり（マークしばり）', desc: '同じマークの札が2回連続で出ると発動。場と同じマークの札しか出せない（ジョーカーは例外）' },
   { key: 'outcast', name: '都落ち', desc: '前回の大富豪が今回1位にならなければ大貧民に落ちる' },
   { key: 'richStart', name: '毎回大富豪から始める', desc: '2回目以降も、ゲームの先手を♦3の持ち主ではなく大富豪にする（1回目は♦3の持ち主）' },
   { key: 'sevenPass', name: '7渡し', desc: '7を出した枚数ぶん、次の手番の（上がっていない）プレイヤーへ、渡す札をまとめて選んで渡す' },
@@ -14479,7 +14567,7 @@ const RULE_SECTIONS = [
   { title: '8切り', key: 'eightCut', text: '8を含む手を出すと場が流れ、出した人がそのまま次の手を出せます。7渡し・10捨てがあるときは、それらを先に行い、8切りは最後に行います。' },
   { title: '10捨て', key: 'tenDump', text: '10を含む手（10の組も含む）を出すと、10の枚数ぶん、手札から捨てる札を任意に選んで捨てます。捨てた札は場に出ず、ゲームから外れます。場は流れません。手札が足りないときは、ある分だけ捨てます。8切りと同時にONにもできます。' },
   { title: '11バック', key: 'elevenBack', text: 'Jを含む手を出すと、その場が流れるまで強さの順が逆転します。革命中は革命と組み合わさり、二重に効いて元に戻ります。' },
-  { title: 'しばり', key: 'bind', text: '場の札と同じマークの札しか出せません。出せなければパスします。ジョーカーは例外で、どの場でも出せます。場がジョーカーだけのときは働きません。' },
+  { title: 'しばり', key: 'bind', text: '同じマークの札が2回連続で出されると発動し、場が流れるまで続きます。発動後は場の札と同じマークの札しか出せません。出せなければパスします。ジョーカーは例外で、どの場でも出せます。場がジョーカーだけのときは働きません。' },
   { title: '都落ち', key: 'outcast', text: 'ONのとき、前回の大富豪が今回1位にならなければ大貧民になります。前の大富豪を除いた残りのプレイヤーは、順位を詰めて役が決まります。' },
   { title: '7渡し', key: 'sevenPass', text: '7を出すと、出した7の枚数ぶん（手札が足りない場合はその分まで）、渡す札を手札から選び、まとめて次の手番の、上がっていないプレイヤーに渡します。スキップはできません。渡せる相手がいない場合は行いません。' },
   { title: '大富豪交換', key: 'exchange', text: '2回目以降のゲーム開始時に行います。大貧民は最強の札（ジョーカーを含む）2枚を大富豪に渡し、大富豪は任意の2枚を返します。4人以上では貧民が最強の札1枚を富豪に渡し、富豪は任意の1枚を返します。' },
