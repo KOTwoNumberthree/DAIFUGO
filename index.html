@@ -1991,8 +1991,7 @@ const CPU = (() => {
     return pick ? { cards: pick.cards, rev: pick.rev } : null;
   }
 
-  // 手札を「残したい価値」の順に並べる（弱い札が先頭。組は残す。ジョーカーは最後）
-    // 革命を狙える手札なら、革命の組に使わない強い札から渡す（ジョーカーは残す）
+  // 革命を狙える手札で使われる数字の集合（その数字の札は残す）
   const revNumsOf = (hand, ctx) => {
     const c = { rules: ctx.rules, revolution: false, elevenBack: false, field: null, fieldInfo: null };
     const s = new Set();
@@ -2006,8 +2005,8 @@ const CPU = (() => {
     const revNums = keepSets && !ctx.revolution ? revNumsOf(hand, ctx) : null;
     const sib = c => hand.filter(x => x.num === c.num).length;
     const cost = c => {
-      if (L.isJoker(c)) return 200;                                    // ジョーカーは最後まで残す
-      if (revNums && revNums.size) return revNums.has(c.num) ? 100 : -L.cardPower(c, ctx); // 革命の組は残し、それ以外の強い札から渡す
+      if (L.isJoker(c)) return 200;                                                              // ジョーカーは最後まで残す
+      if (revNums && revNums.size) return revNums.has(c.num) ? 100 : -L.cardPower(c, ctx);      // 革命の組は残し、それ以外の強い札から渡す
       return L.cardPower(c, ctx) + (keepSets ? (sib(c) - 1) * 3 : 0);
     };
     return hand.slice().sort((a, b) => cost(a) - cost(b));
