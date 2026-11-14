@@ -383,6 +383,12 @@ table.board td:first-child{text-align:left}
 .card.hint{box-shadow:0 0 0 2px var(--accent),0 0 12px var(--accent),0 8px 14px rgba(0,0,0,.35)}
 
 .hand{display:flex;align-items:flex-end;overflow-x:auto;overflow-y:hidden;padding:20px 16px 12px 14px;min-height:124px;-webkit-overflow-scrolling:touch}
+/* 手札の左右端：はみ出している側だけ影を出す（操作は邪魔しない） */
+.hand-wrap{position:relative}
+.hand-wrap::before,.hand-wrap::after{content:"";position:absolute;top:0;bottom:0;width:26px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:3}
+.hand-wrap::before{left:0;background:linear-gradient(to right,rgba(0,0,0,.5),rgba(0,0,0,0))}
+.hand-wrap::after{right:0;background:linear-gradient(to left,rgba(0,0,0,.5),rgba(0,0,0,0))}
+.hand-wrap.fade-l::before,.hand-wrap.fade-r::after{opacity:1}
 .hand .card{margin-left:-24px}
 .hand .card:first-child{margin-left:0}
 .hand.deal .card{animation:dealIn .32s ease-out both}
@@ -397,6 +403,11 @@ table.board td:first-child{text-align:left}
 .ostack .card{width:26px;height:38px;margin-left:-14px;border-radius:4px}
 .ostack .card:first-child{margin-left:0}
 .ocount{font-size:12px;margin-top:2px;white-space:nowrap;overflow:hidden}
+/* 6人以上：相手を1行の横スクロールにして、手札と操作ボタンの領域を確保 */
+.opps.crowded{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:4px 10px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.opps.crowded .opp{flex:0 0 auto;width:112px;padding:4px 6px;scroll-snap-align:start}
+.opps.crowded .ostack{height:34px;margin-top:2px}
+.opps.crowded .ostack .card{width:20px;height:30px;margin-left:-11px}
 
 .field-wrap{padding:4px 10px}
 .field{position:relative;min-height:116px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:18px;background:rgba(0,0,0,.14);border:1px dashed rgba(255,255,255,.18)}
@@ -429,6 +440,7 @@ table.board td:first-child{text-align:left}
   .flyer,.field-ghost{display:none!important}
   .telop{animation:none;opacity:1}
 }
+
 </style>
 </head>
 <body data-theme="casino">
@@ -438,6 +450,525 @@ table.board td:first-child{text-align:left}
 <div id="toast" class="toast hidden"></div>
 
 <script>
+/* =====================================================================
+ * 0. 効果音（Web Audio API による乾いた紙質の卓上トランプ／花札音）
+ *    ・低域の胴鳴り・空気圧を抑制し、紙繊維の摩擦と鋭いスナップを強調
+ * ===================================================================== */
+const Sound = (() => {
+  const KEY = 'daifugou_sound';
+  let enabled = true;
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved === '0' || saved === 'false') enabled = false;
+  } catch (e) {}
+
+  let ctx = null;
+  let frictionBufs = [];
+  let snapBufs = [];
+  let roomConv = null;
+  let dryBus = null;
+  let wetBus = null;
+  let lastFricIdx = -1;
+  let lastSnapIdx = -1;
+
+  // テーマに応じた物理材質（低音を控えめにし、乾いた紙質を主体に設定）
+  function getMaterial() {
+    const theme = (typeof UI !== 'undefined' && UI.theme)
+      ? UI.theme
+      : (document.body && document.body.dataset.theme) || 'casino';
+
+    if (theme.startsWith('wafu') || theme.startsWith('washi')) {
+      // 花札（乾いた裏貼り厚紙）：硬質で歯切れの良い「パチッ！カサッ」
+      return {
+        isHanafuda: true,
+        snapGain: 1.25,
+        snapCenter: 2250,
+        airFreq: 210,
+        airGain: 0,
+        fricGain: 0.75,
+        fricCenter: 2900,
+        tableModes: [
+        ],
+        knockModes: [
+          [235, 0.20, 0.024],
+          [510, 0.16, 0.015],
+          [980, 0.09, 0.009],
+        ],
+      };
+    }
+    if (theme.startsWith('forest')) {
+      // トランプ ＋ 木卓：乾いた紙擦れと軽やかな着地
+      return {
+        isHanafuda: false,
+        snapGain: 1.0,
+        snapCenter: 2700,
+        airFreq: 190,
+        airGain: 0.09,
+        fricGain: 1.15,
+        fricCenter: 3650,
+        tableModes: [
+          [175, 0.06, 0.018],
+          [380, 0.05, 0.012],
+        ],
+        knockModes: [
+          [215, 0.18, 0.024],
+          [470, 0.14, 0.015],
+          [910, 0.08, 0.009],
+        ],
+      };
+    }
+    // トランプ ＋ カジノ卓：エンボス紙の乾いた「ササッ・パチッ」
+    return {
+      isHanafuda: false,
+      snapGain: 0.92,
+      snapCenter: 2950,
+      airFreq: 170,
+      airGain: 0.10,
+      fricGain: 1.28,
+      fricCenter: 3950,
+      tableModes: [
+        [145, 0.05, 0.016],
+        [310, 0.04, 0.011],
+      ],
+      knockModes: [
+        [195, 0.16, 0.022],
+        [430, 0.12, 0.014],
+        [840, 0.06, 0.008],
+      ],
+    };
+  }
+
+  function pickBuf(list, isSnap) {
+    if (!list.length) return null;
+    let idx = Math.floor(Math.random() * list.length);
+    const prev = isSnap ? lastSnapIdx : lastFricIdx;
+    if (idx === prev && list.length > 1) idx = (idx + 1) % list.length;
+    if (isSnap) lastSnapIdx = idx; else lastFricIdx = idx;
+    return list[idx];
+  }
+
+  // 乾いた紙の表面・繊維が擦れる離散マイクログレイン波形（低域成分を徹底排除）
+  function createDryPaperFrictionBuffer(ac, duration) {
+    const sr = ac.sampleRate;
+    const len = Math.floor(sr * duration);
+    const buf = ac.createBuffer(1, len, sr);
+    const d = buf.getChannelData(0);
+
+    let prevWhite = 0;
+    let stepCountdown = 0;
+    let grainAmp = 0;
+
+    for (let i = 0; i < len; i++) {
+      const w = Math.random() * 2 - 1;
+      // 1次微分ハイパスで低域の湿り気を消し、紙の乾いたカサカサ感だけを残す
+      const crisp = (w - prevWhite) * 0.5;
+      prevWhite = w;
+
+      // 紙表面のエンボス粒が細かく弾ける離散パルス
+      if (stepCountdown <= 0) {
+        stepCountdown = Math.floor(2 + Math.random() * 9);
+        grainAmp = (Math.random() < 0.42 ? 1.0 : 0.3) * (Math.random() * 2 - 1);
+      } else {
+        grainAmp *= 0.48;
+        stepCountdown--;
+      }
+
+      d[i] = grainAmp * 0.72 + crisp * 0.68;
+    }
+    return buf;
+  }
+
+  // 乾いた紙・厚紙の角が弾ける超短インパルス波形（「パチッ」「ピシッ」）
+  function createDryCardSnapBuffer(ac) {
+    const sr = ac.sampleRate;
+    const len = Math.floor(sr * 0.028);
+    const buf = ac.createBuffer(1, len, sr);
+    const d = buf.getChannelData(0);
+
+    const reboundSample = Math.floor(sr * (0.0014 + Math.random() * 0.0022));
+    const reboundPolarity = Math.random() < 0.5 ? -0.55 : 0.55;
+
+    for (let i = 0; i < len; i++) {
+      const t = i / sr;
+      let v = 0;
+
+      // 0.35ms以下の極めて鋭い乾いたトランジェント
+      if (i < 12) {
+        v += Math.sin((i / 12) * Math.PI) * (i % 2 === 0 ? 1.0 : -0.55);
+      }
+      // 紙端の微細な2次バウンド
+      const dr = i - reboundSample;
+      if (dr >= 0 && dr < 9) {
+        v += reboundPolarity * Math.sin((dr / 9) * Math.PI);
+      }
+      // 紙繊維が弾ける高域の乾いた減衰尾
+      if (i >= 6 && Math.random() < 0.24) {
+        v += (Math.random() * 2 - 1) * 0.42 * Math.exp(-t * 380);
+      }
+      d[i] = v;
+    }
+    return buf;
+  }
+
+  // 極短のドライな卓上初期反射IR（65ms）
+  function buildDryRoomIR(ac) {
+    const sr = ac.sampleRate;
+    const len = Math.floor(sr * 0.065);
+    const ir = ac.createBuffer(1, len, sr);
+    const d = ir.getChannelData(0);
+    const taps = [
+      [0.0028, 0.42],
+      [0.0072, -0.28],
+      [0.0135, 0.18],
+      [0.0210, -0.10],
+    ];
+    for (const [sec, amp] of taps) {
+      const idx = Math.floor(sec * sr);
+      if (idx < len) d[idx] += amp;
+    }
+    let prev = 0;
+    for (let i = Math.floor(0.005 * sr); i < len; i++) {
+      const t = i / sr;
+      const w = Math.random() * 2 - 1;
+      const hi = (w - prev) * 0.5;
+      prev = w;
+      d[i] += hi * 0.14 * Math.exp(-t * 75);
+    }
+    return ir;
+  }
+
+  function ensure() {
+    if (!enabled) return null;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!ctx) {
+      ctx = new AC();
+
+      dryBus = ctx.createGain();
+      dryBus.gain.value = 0.96;
+      dryBus.connect(ctx.destination);
+
+      // 残響を最小限にして乾いた空気感を維持
+      wetBus = ctx.createGain();
+      wetBus.gain.value = 0.04;
+      roomConv = ctx.createConvolver();
+      roomConv.buffer = buildDryRoomIR(ctx);
+      roomConv.connect(wetBus);
+      wetBus.connect(ctx.destination);
+
+      frictionBufs = Array.from({ length: 8 }, () => createDryPaperFrictionBuffer(ctx, 0.45));
+      snapBufs = Array.from({ length: 8 }, () => createDryCardSnapBuffer(ctx));
+    }
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    return ctx;
+  }
+
+  function routeOut(ac, node, panVal = 0) {
+    if (ac.createStereoPanner) {
+      const pan = ac.createStereoPanner();
+      pan.pan.setValueAtTime(Math.max(-0.35, Math.min(0.35, panVal)), ac.currentTime);
+      node.connect(pan);
+      pan.connect(dryBus);
+      pan.connect(roomConv);
+    } else {
+      node.connect(dryBus);
+      node.connect(roomConv);
+    }
+  }
+
+  // 1) 乾いた紙の摩擦音（1450Hz以下をカットし、カサッとした質感を強調）
+  function emitFriction(ac, t, dur, centerFreq, gain, pan = 0) {
+    const buf = pickBuf(frictionBufs, false);
+    if (!buf) return;
+    const src = ac.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.setValueAtTime(0.94 + Math.random() * 0.12, t);
+    const offset = Math.random() * Math.max(0.01, buf.duration - dur - 0.02);
+
+    const hp = ac.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.setValueAtTime(1450, t);
+
+    const bp = ac.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(centerFreq, t);
+    bp.Q.setValueAtTime(0.85, t);
+
+    const g = ac.createGain();
+    const atk = Math.min(0.007, dur * 0.3);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(gain, t + atk);
+    g.gain.setValueAtTime(gain * 0.82, t + dur * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+    src.connect(hp);
+    hp.connect(bp);
+    bp.connect(g);
+    routeOut(ac, g, pan);
+
+    src.start(t, offset, dur + 0.01);
+  }
+
+  // 2) 乾いた紙の弾きクラック（「パチッ」「ピシッ」）
+  function emitSnap(ac, t, centerFreq, gain, pan = 0) {
+    const buf = pickBuf(snapBufs, true);
+    if (!buf) return;
+    const src = ac.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.setValueAtTime(0.93 + Math.random() * 0.14, t);
+
+    const hp = ac.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.setValueAtTime(1100, t);
+
+    const bp = ac.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(centerFreq, t);
+    bp.Q.setValueAtTime(0.9, t);
+
+    const g = ac.createGain();
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.024);
+
+    src.connect(hp);
+    hp.connect(bp);
+    bp.connect(g);
+    routeOut(ac, g, pan);
+
+    src.start(t);
+  }
+
+  // 3) 極小の着地タッチ（低音を控えめにし、紙が面で触れる微かな気配のみ）
+  function emitAirPocket(ac, t, freq, gain, pan = 0) {
+    if (gain <= 0.005) return;
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.011);
+
+    osc.connect(g);
+    routeOut(ac, g, pan);
+
+    osc.start(t);
+    osc.stop(t + 0.013);
+  }
+
+  // 4) テーブル板の極小共振（叩きつける重みを抑えた軽い接触音）
+  function emitTableModal(ac, t, modes, scale = 1.0, pan = 0) {
+    if (scale <= 0.01) return;
+    const jitter = 0.97 + Math.random() * 0.06;
+    for (const [freq, amp, decay] of modes) {
+      const osc = ac.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq * jitter, t);
+
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(amp * scale, t + 0.0015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+
+      osc.connect(g);
+      routeOut(ac, g, pan);
+
+      osc.start(t);
+      osc.stop(t + decay + 0.004);
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // 各アクションのフォーリー設計
+  // -------------------------------------------------------------------
+
+  // 手札を引く／戻す（指先で乾いた紙の角をずらす音）
+  function select(up = true) {
+    const ac = ensure();
+    if (!ac) return;
+    const mat = getMaterial();
+    const t = ac.currentTime;
+    const j = 0.94 + Math.random() * 0.12;
+    if (up) {
+      emitFriction(ac, t, 0.022, mat.fricCenter * 1.05 * j, 0.16 * mat.fricGain, -0.04);
+      emitSnap(ac, t + 0.007, mat.snapCenter * 1.15 * j, 0.13 * mat.snapGain, -0.04);
+    } else {
+      emitFriction(ac, t, 0.025, mat.fricCenter * 0.88 * j, 0.14 * mat.fricGain, 0.04);
+    }
+  }
+
+  // 場に出す（低音を抑え、乾いた紙が重なり弾ける軽快な「サッ・パチッ！」）
+  function play(count = 1) {
+    const ac = ensure();
+    if (!ac) return;
+    const mat = getMaterial();
+    const n = Math.max(1, Math.min(count || 1, 6));
+    const base = ac.currentTime;
+
+    // 手札から抜き出す乾いた摩擦音
+    emitFriction(ac, base, 0.024, mat.fricCenter * 0.95, 0.21 * mat.fricGain, 0);
+
+    let cursor = base + (mat.isHanafuda ? 0.009 : 0.015);
+    for (let i = 0; i < n; i++) {
+      const isLast = i === n - 1;
+      const j = 0.93 + Math.random() * 0.14;
+      const pan = (i - (n - 1) / 2) * 0.05;
+
+      // 乾いた紙同士が擦れ合う音
+      emitFriction(
+        ac,
+        cursor,
+        isLast ? 0.020 : 0.015,
+        mat.fricCenter * (isLast ? 0.92 : 1.08) * j,
+        (isLast ? 0.24 : 0.16) * mat.fricGain,
+        pan
+      );
+
+      // 紙のしなりが弾ける乾いたクラック（「パチッ／ピシッ」）
+      emitSnap(
+        ac,
+        cursor + 0.003,
+        mat.snapCenter * (isLast ? 0.96 : 1.1) * j,
+        (isLast ? 0.44 : 0.26) * mat.snapGain,
+        pan
+      );
+
+      // 着地の低音はごく控えめに添えるだけ
+      if (isLast) {
+        emitAirPocket(ac, cursor + 0.003, mat.airFreq * j, mat.airGain, pan);
+        emitTableModal(ac, cursor + 0.003, mat.tableModes, 0.7, pan);
+      }
+
+      cursor += Math.max(0.021, 0.036 - i * 0.003 + (Math.random() * 0.005 - 0.0025));
+    }
+  }
+
+  // パス（爪先・指先で軽く「コツ、コツ」と2回ノック）
+  function pass() {
+    const ac = ensure();
+    if (!ac) return;
+    const mat = getMaterial();
+    const base = ac.currentTime;
+    [0, 0.115].forEach((off, idx) => {
+      const t = base + off + (idx === 1 ? (Math.random() * 0.010 - 0.005) : 0);
+      const scale = idx === 0 ? 1.0 : 0.82;
+      emitTableModal(ac, t, mat.knockModes, scale, 0.14);
+      emitSnap(ac, t, 1850, 0.16 * scale, 0.14);
+    });
+  }
+
+  // 場が流れる・8切り（乾いた札を「ササッ、カサッ」とひとまとめに寄せる）
+  function sweep() {
+    const ac = ensure();
+    if (!ac) return;
+    const mat = getMaterial();
+    const t = ac.currentTime;
+    emitFriction(ac, t, 0.12, mat.fricCenter * 0.88, 0.30 * mat.fricGain, -0.08);
+    emitFriction(ac, t + 0.038, 0.10, mat.fricCenter * 1.06, 0.23 * mat.fricGain, 0.06);
+    emitSnap(ac, t + 0.105, mat.snapCenter * 0.92, 0.24 * mat.snapGain, 0.10);
+  }
+
+  // 7渡し・10捨て・交換・並べ替え（カードを滑らせて渡す／揃える音）
+  function slide(count = 1) {
+    const ac = ensure();
+    if (!ac) return;
+    const mat = getMaterial();
+    const n = Math.max(1, Math.min(count || 1, 3));
+    const base = ac.currentTime;
+    for (let i = 0; i < n; i++) {
+      const t = base + i * 0.062;
+      const j = 0.94 + Math.random() * 0.12;
+      const pan = (i - 1) * 0.08;
+      emitFriction(ac, t, 0.055, mat.fricCenter * 0.9 * j, 0.25 * mat.fricGain, pan);
+      emitSnap(ac, t + 0.042, mat.snapCenter * 1.06 * j, 0.18 * mat.snapGain, pan);
+    }
+  }
+
+  // 革命・階段革命・11バック（札の束をひっくり返す乾いた「パサッ…パチッ！」）
+  function flip() {
+    const ac = ensure();
+    if (!ac) return;
+    const mat = getMaterial();
+    const t = ac.currentTime;
+    emitFriction(ac, t, 0.040, mat.fricCenter * 0.96, 0.28 * mat.fricGain, -0.05);
+    emitSnap(ac, t + 0.011, mat.snapCenter * 1.08, 0.28 * mat.snapGain, -0.05);
+
+    emitFriction(ac, t + 0.074, 0.030, mat.fricCenter * 0.85, 0.28 * mat.fricGain, 0.05);
+    emitSnap(ac, t + 0.079, mat.snapCenter * 0.92, 0.50 * mat.snapGain, 0.05);
+    emitAirPocket(ac, t + 0.079, mat.airFreq, mat.airGain * 1.1, 0.05);
+    emitTableModal(ac, t + 0.079, mat.tableModes, 0.85, 0.05);
+  }
+
+  // ゲーム開始時のカード配布（親指で角を弾いて配る乾いたディール音）
+  function deal(count = 7) {
+    const ac = ensure();
+    if (!ac) return;
+    const mat = getMaterial();
+    const n = Math.max(4, Math.min(count || 7, 8));
+    const base = ac.currentTime + 0.03;
+    for (let i = 0; i < n; i++) {
+      const t = base + i * 0.056 + (Math.random() * 0.008 - 0.004);
+      const j = 0.93 + Math.random() * 0.14;
+      const pan = ((i % 4) - 1.5) * 0.12;
+      emitSnap(ac, t, mat.snapCenter * 1.15 * j, 0.22 * mat.snapGain, pan);
+      emitFriction(ac, t + 0.004, 0.024, mat.fricCenter * 0.98 * j, 0.21 * mat.fricGain, pan);
+    }
+  }
+
+  // 自分の手番通知（手札の角を軽く揃える極小の乾いた紙音）
+  function turn() {
+    const ac = ensure();
+    if (!ac) return;
+    const mat = getMaterial();
+    const t = ac.currentTime;
+    emitSnap(ac, t, mat.snapCenter * 1.2, 0.14 * mat.snapGain, 0);
+    emitFriction(ac, t + 0.004, 0.015, mat.fricCenter * 1.05, 0.11 * mat.fricGain, 0);
+  }
+
+  // 上がり（最後の札を出し切り、手札を卓に置く乾いた着地音）
+  function finish() {
+    const ac = ensure();
+    if (!ac) return;
+    const mat = getMaterial();
+    const t = ac.currentTime;
+    emitFriction(ac, t, 0.028, mat.fricCenter * 0.92, 0.25 * mat.fricGain, 0);
+    emitSnap(ac, t + 0.004, mat.snapCenter * 0.95, 0.44 * mat.snapGain, 0);
+    emitAirPocket(ac, t + 0.004, mat.airFreq, mat.airGain, 0);
+    emitTableModal(ac, t + 0.004, mat.tableModes, 0.75, 0);
+    emitFriction(ac, t + 0.062, 0.038, mat.fricCenter * 0.82, 0.13 * mat.fricGain, 0.06);
+  }
+
+  function setEnabled(v) {
+    enabled = !!v;
+    try { localStorage.setItem(KEY, enabled ? '1' : '0'); } catch (e) {}
+    if (enabled) select(true);
+    return enabled;
+  }
+
+  function toggle() {
+    return setEnabled(!enabled);
+  }
+
+  return {
+    get enabled() { return enabled; },
+    setEnabled,
+    toggle,
+    unlock: ensure,
+    select,
+    play,
+    pass,
+    sweep,
+    slide,
+    flip,
+    deal,
+    turn,
+    finish,
+  };
+})();
+
 /* =====================================================================
  * 1. ゲームロジック（DOM非依存の純粋な関数群）
  *    ルール判定・状態遷移はすべてここで行う。UIは状態を描画するだけ。
@@ -585,11 +1116,13 @@ const Logic = (() => {
     const jokers = hand.filter(isJoker);
     // 数字の組（ワイルドONならジョーカーで不足分を埋める）
     const byNum = new Map();
+    // 4枚以上で革命がONのときは、ジョーカーを使って最大6枚の組まで作れる（OFFのときは4枚まで）
+    const maxSet = (ctx.rules.revolution && ctx.rules.revMin4) ? 6 : 4;
     nat.forEach(c => { if (!byNum.has(c.num)) byNum.set(c.num, []); byNum.get(c.num).push(c); });
     for (const arr of byNum.values()) {
       for (let m = 1; m <= Math.min(arr.length, 4); m++) {
         combos(arr, m).forEach(base => {
-          for (let jk = 0; jk <= Math.min(jokers.length, 4 - m); jk++) add(base.concat(jokers.slice(0, jk)));
+          for (let jk = 0; jk <= Math.min(jokers.length, maxSet - m); jk++) add(base.concat(jokers.slice(0, jk)));
         });
       }
     }
@@ -707,16 +1240,14 @@ const Logic = (() => {
 
   const isSpadeThree = c => c.suit === 'S' && c.num === 3;
   // 禁止上がりの判定で「最強の札」かどうか。場の状況で決まる。
-  // 11バックの逆転は、場にJがあるときだけ最強の判定に効く。スペードの3は、場にジョーカーがあるときだけ最強扱い。
+  // 11バックの逆転は、Jが出てから場が流れるまで続く（ctx.elevenBack）。スペードの3は、場にジョーカーがあるときだけ最強扱い。
   function isStrongest(c, ctx) {
     const field = ctx.field || [];
-    const fieldHasJ = field.some(x => !isJoker(x) && x.num === 11);
     const fieldHasJoker = field.some(x => isJoker(x));
     if (isJoker(c)) return true;
     if (ctx.rules.spade3Joker && isSpadeThree(c)) return fieldHasJoker;
-    const eff = { ...ctx, elevenBack: ctx.elevenBack && fieldHasJ };
-    const top = Math.max(...Array.from({ length: 13 }, (_, i) => numPower(i + 3, eff)));
-    return numPower(c.num, eff) === top;
+    const top = Math.max(...Array.from({ length: 13 }, (_, i) => numPower(i + 3, ctx)));
+    return numPower(c.num, ctx) === top;
   }
   // ルール「最強の札で上がり禁止」がONのとき、最強の札を含み手札を出し切る手（上がり）は禁止
   const bansStrongFinish = (cards, hand, ctx) =>
@@ -1036,7 +1567,7 @@ const CPU = (() => {
     'とても強い': { samples: 8, maxCandidates: 10, budgetMs: 600, policy: '普通', usePass: false },
     '極めて強い': { samples: 12, maxCandidates: 12, budgetMs: 2000, policy: '強い', usePass: true },
     // 圧倒的に強い：推測の数を増やし、順位だけでなく「最下位になる確率」も避ける。終盤は推測を増やす
-    '圧倒的に強い': { samples: 32, maxCandidates: 16, budgetMs: 1800, maxIters: 6000, policy: '強い', usePass: true, bottomW: 0.5, endgameBoost: 1.5, treeDepth: 3 },
+    '圧倒的に強い': { samples: 32, maxCandidates: 15, budgetMs: 1800, maxIters: 6000, policy: "強い", usePass: true, bottomW: 0.32, endgameBoost: 1.5, treeDepth: 3, priorW: 0.58, leafEval: true, rolloutSteps: 85, exactMax: 48, C: 0.42 },
   };
 
   function mcPick(v, ctx, items, lead, cfg) {
@@ -1176,7 +1707,7 @@ const CPU = (() => {
       const hand = [];
       const k = o.finished ? 0 : o.count;
       for (let i = 0; i < k && remaining.length; i++) {
-        const ws = remaining.map(c => Math.exp(tilt[o.id] * (cpOf(c) - 8) / 6));
+        const ws = remaining.map(c => Math.exp(tilt[o.id] * (cpOf(c) - 8) / 7.5));
         const total = ws.reduce((a, b) => a + b, 0);
         let r = Math.random() * total, j = 0;
         for (; j < ws.length - 1; j++) { r -= ws[j]; if (r <= 0) break; }
@@ -1221,6 +1752,13 @@ const CPU = (() => {
   }
   // ISMCTS：推測した手札ごとに同じ木を辿り、行動の成績を木で共有する。木の手番は合法手生成と既存のルール判定だけを使う
   // 協調的に画面を止めないよう、途中で yield する（同期でも非同期でも同じ処理）
+  const binom = (a, b) => { if (b < 0 || b > a) return 0; let r = 1; for (let i = 0; i < b; i++) r = r * (a - i) / (i + 1); return Math.round(r); };
+  const kSubsets = (arr, k) => {
+    if (k === 0) return [[]];
+    if (arr.length < k) return [];
+    const [h, ...t] = arr;
+    return kSubsets(t, k - 1).map(s => [h, ...s]).concat(kSubsets(t, k));
+  };
   function* ovGen(v, ctx, items, lead, cfg) {
     const n = v.others.length + 1;
     const bottomW = cfg.bottomW || 0;
@@ -1232,7 +1770,27 @@ const CPU = (() => {
       const c = L.ctxOf({ rules: v.rules, revolution: rec.revolution, elevenBack: rec.elevenBack, field: rec.field });
       return L.legalPlays(hands[id] || [], c).length === 0;
     });
+    let exactSet = null;
+    if (cfg.exactMax) {
+      const alive = v.others.filter(o => !o.finished);
+      let tot = 1, rem = pool.length;
+      for (const o of alive) { tot *= binom(rem, o.count); rem -= o.count; if (tot > cfg.exactMax) break; }
+      if (rem === 0 && tot <= cfg.exactMax) {
+        const all = [];
+        const en = (ai, avail, cur) => {
+          if (ai === alive.length) {
+            const h = {}; v.others.forEach(o => { h[o.id] = []; }); cur.forEach(([id, cs]) => { h[id] = cs; });
+            if (consistent(h)) all.push(h);
+            return;
+          }
+          for (const sub of kSubsets(avail, alive[ai].count)) en(ai + 1, avail.filter(c => !sub.includes(c)), cur.concat([[alive[ai].id, sub]]));
+        };
+        en(0, pool, []);
+        if (all.length) exactSet = all;
+      }
+    }
     const sampleHands = () => {
+      if (exactSet) return exactSet[Math.floor(Math.random() * exactSet.length)];
       let h = dealWeighted(pool, v.others, tilt);
       for (let t = 0; t < 40 && !consistent(h); t++) h = dealWeighted(pool, v.others, tilt);
       return h;
@@ -1251,7 +1809,7 @@ const CPU = (() => {
     });
     const rollout = st => {
       let steps = 0;
-      while (!st.over && steps++ < 220) {
+      while (!st.over && steps++ < (cfg.rolloutSteps || 220)) {
         if (st.players[v.me].finished) break;
         if (st.phase === 'seven') {
           const s = st.pendingSeven;
@@ -1273,9 +1831,20 @@ const CPU = (() => {
       }
       return st;
     };
-    const rankOf = st => (st.players[v.me].rank != null ? st.players[v.me].rank : n);
+    const rankOf = st => {
+      const me = st.players[v.me];
+      if (me.rank != null) return me.rank;
+      if (!cfg.leafEval || st.over) return n;
+      const c = L.ctxOf(st);
+      const fin = st.players.filter(p => p.finished).length;
+      const myEst = finishEstimate(me.hand, c);
+      let ahead = 0;
+      st.players.forEach(p => { if (p.id !== v.me && !p.finished && finishEstimate(p.hand, c) < myEst) ahead++; });
+      return Math.min(n, fin + 1 + ahead);
+    };
     const rewardOf = st => { const rk = rankOf(st); return (n - rk) / (n - 1) - (rk === n ? bottomW : 0); };
     const tree = new Map();
+    const prefs = new Map(); // 木の各節で、強いの考え方が選ぶ手（事前評価）
     const nodeFor = k => { let m = tree.get(k); if (!m) { m = new Map(); tree.set(k, m); } return m; };
     const legalActs = st => {
       const acts = L.legalPlays(st.players[st.turn].hand, L.ctxOf(st)).map(x => ({ cards: x.cards, rev: x.rev, key: actKey(x.cards, x.rev) }));
@@ -1283,16 +1852,16 @@ const CPU = (() => {
       return acts;
     };
     const applyAct = (st, idx, a) => (a.cards ? L.applyPlay(st, idx, a.cards, a.rev ? 'rev' : 'normal') : L.applyPass(st, idx)).ok;
-    const C = 0.6;
-    const pickUcb = (node, acts) => {
+    const C = cfg.C !== undefined ? cfg.C : 0.6;
+    const pickUcb = (node, acts, pref) => {
       const untried = acts.filter(a => !node.has(a.key));
-      if (untried.length) return { a: rnd(untried), fresh: true };
+      if (untried.length) { const pu = untried.find(a => a.key === pref); return { a: pu || rnd(untried), fresh: true }; }
       let total = 0;
       acts.forEach(a => { total += node.get(a.key).N; });
       let best = null, bs = -Infinity;
       for (const a of acts) {
         const s = node.get(a.key);
-        const sc = s.W / s.N + C * Math.sqrt(Math.log(total + 1) / s.N);
+        const sc = s.W / s.N + C * Math.sqrt(Math.log(total + 1) / s.N) + (cfg.priorW && a.key === pref ? cfg.priorW / (s.N + 1) : 0);
         if (sc > bs) { bs = sc; best = a; }
       }
       return { a: best, fresh: false };
@@ -1307,7 +1876,8 @@ const CPU = (() => {
       if (Date.now() - lastYield > 8) { yield; lastYield = Date.now(); }
       const st = makeState(sampleHands());
       const path = [];
-      const sel = pickUcb(root, rootActs);
+      if (cfg.priorW && !prefs.has('R')) { const pk = choosePlay(view(st, v.me), cfg.policy); prefs.set('R', pk ? actKey(pk.cards, pk.rev) : 'pass'); }
+      const sel = pickUcb(root, rootActs, prefs.get('R'));
       if (sel.fresh) root.set(sel.a.key, { N: 0, W: 0 });
       const ra = sel.a.item !== undefined ? { cards: sel.a.item ? sel.a.item.cards : null, rev: sel.a.item ? sel.a.item.rev : false, key: sel.a.key } : sel.a;
       if (!applyAct(st, v.me, ra)) continue;
@@ -1318,7 +1888,8 @@ const CPU = (() => {
         const acts = legalActs(st);
         if (!acts.length) break;
         const node = nodeFor(key);
-        const s2 = pickUcb(node, acts);
+        if (cfg.priorW && !prefs.has(key)) { const pk = choosePlay(view(st, st.turn), cfg.policy); prefs.set(key, pk ? actKey(pk.cards, pk.rev) : 'pass'); }
+        const s2 = pickUcb(node, acts, prefs.get(key));
         if (s2.fresh) node.set(s2.a.key, { N: 0, W: 0 });
         path.push([key, s2.a.key]);
         if (!applyAct(st, st.turn, s2.a)) break;
@@ -1334,7 +1905,7 @@ const CPU = (() => {
       const s = root.get(a.key);
       if (!s || !s.N) continue;
       const remain = a.item ? v.hand.filter(c => !a.item.cards.some(d => d.id === c.id)) : v.hand;
-      const score = s.W / s.N - 0.03 * finishEstimate(remain, ctx);
+      const score = s.W / s.N - 0.018 * finishEstimate(remain, ctx);
       if (score > bestScore) { bestScore = score; best = a; }
     }
     if (!best) best = rootActs[0];
@@ -1451,7 +2022,7 @@ const CPU = (() => {
  * ===================================================================== */
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const CPU_NAMES = ['田中 健太', '佐藤 美咲', '鈴木 翔太', '高橋 結衣', '伊藤 大輝', '渡辺 葵', '山本 蓮'];
+const CPU_NAMES = ['CPU(1)', 'CPU(2)', 'CPU(3)', 'CPU(4)', 'CPU(5)', 'CPU(6)', 'CPU(7)'];
 const LEVELS = ['圧倒的に弱い', '極めて弱い', 'とても弱い', '弱い', '普通', '強い', 'とても強い', '極めて強い', '圧倒的に強い'];
 const THEMES = [['casino', '洋風カジノ'], ['casino-navy', '洋風カジノ（ネイビー）'], ['casino-wine', '洋風カジノ（ワイン）'], ['wafu', '和風（花札）'],
   ['wafu-black', '和風（墨黒）'], ['wafu-enji', '和風（臙脂）'], ['neon', 'ネオン'], ['neon-green', 'ネオン（緑）'],
@@ -1520,7 +2091,7 @@ const UI = {
   exchange: null, exMode: 'give', exSel: new Set(), exStep: 'select',
   seven: { target: null, sel: null },
   myId: 0, net: null, invitePeer: null, confirmFn: null, confirmBack: null,
-  guest: { answer: null, name: '' }, sevKey: null, exKey: null, discSel: new Set(), disKey: null,
+  guest: { answer: null, name: '' }, sevKey: null, exKey: null, discSel: new Set(), disKey: null, turnSoundKey: '',
 };
 
 const cardName = c => c.num === 16 ? 'JOKER' : Logic.SUIT_SYM[c.suit] + Logic.label(c.num);
@@ -1608,6 +2179,7 @@ function titleHTML() {
     <button class="btn big" data-act="newGame">はじめから</button>
     <button class="btn big" data-act="mp">みんなで遊ぶ（同じWi-Fi）</button>
     <button class="btn ghost" data-act="rules">ルール説明</button>
+    <button class="btn small ghost" data-act="snd">効果音：${Sound.enabled ? 'ON' : 'OFF'}</button>
   </div>`;
 }
 
@@ -1640,6 +2212,8 @@ function settingsHTML() {
     ${rules}
     <label class="rule"><input id="hlIn" type="checkbox" ${UI.highlight ? 'checked' : ''}>
       <div><b>出せるカードのハイライト</b><small>ONで出せる札を光らせ、出せない札を暗くします</small></div></label>
+    <label class="rule"><input id="sndIn" type="checkbox" ${Sound.enabled ? 'checked' : ''}>
+      <div><b>効果音（卓上のカード音）</b><small>カードを切る・出す・パスするなどの現実的な卓上音を鳴らします（いつでも切り替え可能）</small></div></label>
     <label class="lbl">テーマ
       <select class="sel" data-theme-pick>${themeOptions()}</select></label>
     <button class="btn big" data-act="start">ゲーム開始</button>
@@ -1657,13 +2231,14 @@ function gameHTML() {
     <select class="sel" data-theme-pick>${themeOptions()}</select>
     <button class="btn small" id="btnSort" data-act="sort"></button>
     <button class="btn small" id="btnHl" data-act="hl"></button>
+    <button class="btn small" id="btnSnd" data-act="snd"></button>
     ${isHost() ? '<button class="btn small" data-act="invite">参加者を追加</button>' : ''}
   </div>
   <div class="badges" id="badges"></div>
   <div class="opps" id="opps"></div>
   <div class="field-wrap"><div class="field" id="field"></div></div>
   <div class="status" id="status"></div>
-  <div class="me"><div class="me-h" id="meH"></div><div class="hand" id="hand"></div></div>
+  <div class="me"><div class="me-h" id="meH"></div><div class="hand-wrap"><div class="hand" id="hand"></div></div></div>
   <div class="modebar" id="modeBar"></div>
   <div class="actions">
     <button class="btn big" id="btnPlay" data-act="play">出す</button>
@@ -1677,6 +2252,15 @@ function renderAll() {
   if (UI.screen !== 'game' || !g) return;
   renderBadges(g); renderOpps(g); renderField(g); renderHand(g);
   renderStatus(g); renderModeBar(g); renderButtons(g);
+  if (isHumanTurn(g)) {
+    const tk = `${g.playId}-${g.turn}`;
+    if (UI.turnSoundKey !== tk) {
+      UI.turnSoundKey = tk;
+      if (!UI.dealAnim) setTimeout(() => { if (isHumanTurn(UI.game)) Sound.turn(); }, 180);
+    }
+  } else {
+    UI.turnSoundKey = '';
+  }
 }
 function renderBadges(g) {
   const st = (g.revolution ? '<span class="b hot">革命中</span>' : '') + (g.elevenBack ? '<span class="b hot">11バック中</span>' : '');
@@ -1684,6 +2268,7 @@ function renderBadges(g) {
   $('#badges').innerHTML = (st + on) || '<span class="b">基本ルール</span>';
 }
 function renderOpps(g) {
+  $('#opps').classList.toggle('crowded', g.players.length - 1 >= 5);
   $('#opps').innerHTML = g.players.filter(p => p.id !== UI.myId).map(p => {
     const turn = g.phase === 'play' && !g.over && g.turn === p.id;
     const backs = Array.from({ length: Math.min(p.hand.length, 6) }, () => cardHTML(null, { back: true })).join('');
@@ -1726,12 +2311,18 @@ function renderField(g) {
   el.innerHTML = `<div class="fowner">${esc(g.players[f.owner].name)}が出しました${f.rev ? ' <span class="tag gold">階段革命</span>' : ''}</div>
     <div class="${cls.join(' ')}">${cardsHTML}</div>`;
 }
+// 手札が左右にはみ出しているとき、そちら側の端に影を出して「続きがある」ことを示す
+function updateHandFade() {
+  const h = $('#hand'); if (!h || !h.parentElement) return;
+  h.parentElement.classList.toggle('fade-l', h.scrollLeft > 4);
+  h.parentElement.classList.toggle('fade-r', h.scrollLeft + h.clientWidth < h.scrollWidth - 4);
+}
 function renderHand(g) {
   const me = humanOf(g);
   const hEl = $('#hand');
   $('#meH').innerHTML = `<b>${esc(me.name)}</b><span>手札 ${me.hand.length}枚</span>${me.role ? `<span class="role r${ROLE_ORDER.indexOf(me.role) + 1}">${me.role}</span>` : ''}${me.stuck ? '<span class="tag">上がれず</span>' : me.finished ? `<span class="tag gold">${me.rank}位上がり</span>` : ''}`;
   $('#meH').setAttribute('data-pid', me.id);
-  if (me.finished || me.hand.length === 0) { hEl.innerHTML = `<div class="empty">${me.stuck ? '上がれないまま最後まで残りました' : '上がりました。対局を見守りましょう'}</div>`; hEl.classList.remove('deal'); return; }
+  if (me.finished || me.hand.length === 0) { hEl.innerHTML = `<div class="empty">${me.stuck ? '上がれないまま最後まで残りました' : '上がりました。対局を見守りましょう'}</div>`; hEl.classList.remove('deal'); updateHandFade(); return; }
   const ctx = Logic.ctxOf(g);
   const my = isHumanTurn(g);
   const ok = new Set();
@@ -1742,6 +2333,8 @@ function renderHand(g) {
     dim: my && UI.highlight && !ok.has(c.id),
   })).join('');
   hEl.classList.toggle('deal', UI.dealAnim);
+  if (!hEl.dataset.fadeBound) { hEl.addEventListener('scroll', updateHandFade, { passive: true }); hEl.dataset.fadeBound = '1'; }
+  updateHandFade();
 }
 function renderStatus(g) {
   let html;
@@ -1783,6 +2376,7 @@ function renderButtons(g) {
   $('#btnPass').disabled = !my || !g.field;
   $('#btnSort').textContent = `並べ替え：${UI.sortMode === 'num' ? '数字順' : 'マーク順'}`;
   $('#btnHl').textContent = `ハイライト：${UI.highlight ? 'ON' : 'OFF'}`;
+  const sb = $('#btnSnd'); if (sb) sb.textContent = `音：${Sound.enabled ? 'ON' : 'OFF'}`;
 }
 
 /* ---------- ゲームの進行 ---------- */
@@ -1804,7 +2398,7 @@ function toast(text) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.add('hidden'), 1800);
 }
-const FX_TYPES = ['pass', 'flush', 'eight', 'ten', 'discard', 'eleven', 'revolution', 'stairRev', 'sevenStart', 'give', 'spade3', 'finish'];
+const FX_TYPES = ['play', 'pass', 'flush', 'eight', 'ten', 'discard', 'eleven', 'revolution', 'stairRev', 'sevenStart', 'give', 'spade3', 'finish'];
 function announce(g, e) {
   const nm = i => g.players[i].name;
   switch (e.type) {
@@ -1852,17 +2446,19 @@ function flyCards(fromPid, toEl, n, faces) {
 }
 function fxOne(g, e) {
   switch (e.type) {
-    case 'flush': telop('場が流れました'); break;
-    case 'eight': telop('8切り！'); break;
+    case 'play': Sound.play(e.len || (e.cards && e.cards.length) || 1); break;
+    case 'pass': Sound.pass(); break;
+    case 'flush': telop('場が流れました'); setTimeout(() => Sound.sweep(), 150); break;
+    case 'eight': telop('8切り！'); setTimeout(() => Sound.sweep(), 150); break;
     case 'ten': telop('10捨て！'); break;
-    case 'discard': flyCards(e.idx, $('#field'), e.n, e.cards); break;
-    case 'eleven': telop('11バック！'); break;
-    case 'revolution': telop(e.on ? '革命！' : '革命返し！'); break;
-    case 'stairRev': telop('階段革命！'); break;
+    case 'discard': flyCards(e.idx, $('#field'), e.n, e.cards); Sound.slide(e.n); break;
+    case 'eleven': telop('11バック！'); setTimeout(() => Sound.flip(), 140); break;
+    case 'revolution': telop(e.on ? '革命！' : '革命返し！'); setTimeout(() => Sound.flip(), 140); break;
+    case 'stairRev': telop('階段革命！'); setTimeout(() => Sound.flip(), 140); break;
     case 'sevenStart': telop('7渡し！'); break;
-    case 'give': flyCards(e.from, seatEl(e.to), e.n); break;
-    case 'spade3': telop('スペードの3！'); break;
-    case 'finish': telop(`${g.players[e.idx].name} ${e.rank}位上がり`); break;
+    case 'give': flyCards(e.from, seatEl(e.to), e.n); Sound.slide(e.n); break;
+    case 'spade3': telop('スペードの3！'); setTimeout(() => Sound.flip(), 140); break;
+    case 'finish': telop(`${g.players[e.idx].name} ${e.rank}位上がり`); Sound.finish(); break;
   }
 }
 function playFx(g, events) { if (g) events.forEach(e => fxOne(g, e)); }
@@ -1967,8 +2563,8 @@ function renderDiscard() {
 function discToggle(id) {
   const g = UI.game, d = g.pendingDiscard;
   if (!d || !g.players[d.from].hand.some(c => c.id === id)) return;
-  if (UI.discSel.has(id)) UI.discSel.delete(id);
-  else if (UI.discSel.size < Logic.discardNeed(g, d.from)) UI.discSel.add(id);
+  if (UI.discSel.has(id)) { UI.discSel.delete(id); Sound.select(false); }
+  else if (UI.discSel.size < Logic.discardNeed(g, d.from)) { UI.discSel.add(id); Sound.select(true); }
   else { toast(`${Logic.discardNeed(g, d.from)}枚までです`); return; }
   renderDiscard();
 }
@@ -1987,7 +2583,9 @@ function humanPass() {
 function toggleCard(id) {
   const g = UI.game;
   if (!isHumanTurn(g)) return;
-  if (UI.selected.has(id)) UI.selected.delete(id); else UI.selected.add(id);
+  const adding = !UI.selected.has(id);
+  if (adding) UI.selected.add(id); else UI.selected.delete(id);
+  Sound.select(adding);
   renderHand(g); renderStatus(g); renderModeBar(g); renderButtons(g);
 }
 
@@ -2012,8 +2610,8 @@ function renderSeven() {
 function sevToggle(id) {
   const g = UI.game, s = g.pendingSeven;
   if (!s || !g.players[s.from].hand.some(c => c.id === id)) return;
-  if (UI.seven.sel.has(id)) UI.seven.sel.delete(id);
-  else if (UI.seven.sel.size < Logic.sevenNeed(g)) UI.seven.sel.add(id);
+  if (UI.seven.sel.has(id)) { UI.seven.sel.delete(id); Sound.select(false); }
+  else if (UI.seven.sel.size < Logic.sevenNeed(g)) { UI.seven.sel.add(id); Sound.select(true); }
   else { toast(`${Logic.sevenNeed(g)}枚までです`); return; }
   renderSeven();
 }
@@ -2037,6 +2635,7 @@ function handleExchange() {
       if (!e2 || e2.stage !== 'give') return;
       const gv = g.players[e2.giver], rv = g.players[e2.receiver];
       Logic.exchangeGive(g, e2, Logic.pickStrongest(gv.hand, e2.count, Logic.ctxOf(g)));
+      Sound.slide(e2.count);
       addMsg(`${gv.name}が${rv.name}に札を渡しました（交換）`);
       runFlow();
     }, giver.isHuman ? 0 : 600);
@@ -2054,6 +2653,7 @@ function handleExchange() {
     const rv = g.players[e2.receiver], gv = g.players[e2.giver];
     const cards = CPU.chooseReturn(rv.hand, e2.count, rv.level, Logic.ctxOf(g));
     Logic.exchangeReturn(g, e2, cards);
+    Sound.slide(cards.length);
     addMsg(`${rv.name}が${gv.name}に${cards.length}枚を返しました`);
     runFlow();
   }, 700);
@@ -2098,8 +2698,8 @@ function exToggle(id) {
   const g = UI.game, ex = UI.exchange;
   const card = exWho(g, ex).hand.find(c => c.id === id);
   if (!card) return;
-  if (UI.exSel.has(id)) UI.exSel.delete(id);
-  else if (UI.exSel.size < ex.count) UI.exSel.add(id);
+  if (UI.exSel.has(id)) { UI.exSel.delete(id); Sound.select(false); }
+  else if (UI.exSel.size < ex.count) { UI.exSel.add(id); Sound.select(true); }
   else { toast(`${ex.count}枚までです`); return; }
   renderExchange();
 }
@@ -2134,7 +2734,9 @@ function startNewGame() {
   UI.lastPlayId = -1; UI.fieldSig = '';
   UI.screen = 'game';
   UI.dealAnim = true;
+  UI.turnSoundKey = '';
   setTimeout(() => { UI.dealAnim = false; }, 900);
+  Sound.deal(UI.game.players[UI.myId].hand.length);
   if (!UI.inGame) { history.pushState({ game: true }, ''); UI.inGame = true; }
   const g = UI.game;
   if (g.phase === 'exchange') addMsg('大富豪交換を行います');
@@ -2218,6 +2820,7 @@ function readSettingsDOM() {
   document.querySelectorAll('[data-draft="level"]').forEach(s => { d.levels[+s.dataset.i] = s.value; });
   document.querySelectorAll('[data-rule]').forEach(c => { d.rules[c.dataset.rule] = c.checked; });
   const h = $('#hlIn'); if (h) UI.highlight = h.checked;
+  const s = $('#sndIn'); if (s && s.checked !== Sound.enabled) Sound.setEnabled(s.checked);
   normalizeRules(d.rules);
 }
 
@@ -2449,7 +3052,12 @@ function guestApply(m) {
   if (changed) UI.selected.clear();
   if (!UI.inGame) { history.pushState({ game: true }, ''); UI.inGame = true; }
   UI.screen = 'game';
-  if (first) render(); else renderAll();
+  if (first) {
+    Sound.deal(m.game.players[UI.myId].hand.length);
+    render();
+  } else {
+    renderAll();
+  }
   if (!first && fxNew) playFx(m.game, m.fx.events || []);
   if (m.game.over) { if (UI.overlay !== 'result') openResult(); return; }
   if (UI.overlay === 'result') closeOverlay();
@@ -2530,6 +3138,7 @@ function applyAct(seat, a) {
     const cards = src.hand.filter(c => a.ids.includes(c.id));
     const res = wasGive ? Logic.exchangeGive(g, ex, cards) : Logic.exchangeReturn(g, ex, cards);
     if (!res.ok) return fail(res.reason);
+    Sound.slide(cards.length);
     addMsg(wasGive
       ? `${g.players[ex.receiver].name}が${g.players[ex.giver].name}から札を受け取りました`
       : `${g.players[ex.receiver].name}が${g.players[ex.giver].name}に札を返しました`);
@@ -2629,8 +3238,13 @@ const ACTIONS = {
   start: () => startSeries(),
   play: () => humanPlay(),
   pass: () => humanPass(),
-  sort: () => { UI.sortMode = UI.sortMode === 'num' ? 'suit' : 'num'; renderHand(UI.game); renderButtons(UI.game); },
+  sort: () => { UI.sortMode = UI.sortMode === 'num' ? 'suit' : 'num'; Sound.slide(2); renderHand(UI.game); renderButtons(UI.game); },
   hl: () => { UI.highlight = !UI.highlight; renderAll(); },
+  snd: () => {
+    Sound.toggle();
+    if (UI.screen === 'game' && UI.game) renderButtons(UI.game);
+    else { readSettingsDOM(); render(); }
+  },
   mode: b => { UI.stairMode = b.dataset.m; renderStatus(UI.game); renderModeBar(UI.game); },
   quit: () => askConfirm('タイトルに戻ります。連続戦は終了します。', 'やめる', endAll),
   board: () => openBoard(),
@@ -2676,6 +3290,7 @@ const ACTIONS = {
 };
 
 document.addEventListener('click', e => {
+  Sound.unlock();
   const card = e.target.closest('.card[data-cid]');
   if (card) {
     const id = +card.dataset.cid;
@@ -2693,7 +3308,7 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.matches('[data-theme-pick]')) { setTheme(t.value); return; }
-  if ((UI.screen === 'settings' || UI.screen === 'hostlobby') && (t.matches('[data-rule]') || t.matches('[data-draft]') || t.id === 'hlIn')) {
+  if ((UI.screen === 'settings' || UI.screen === 'hostlobby') && (t.matches('[data-rule]') || t.matches('[data-draft]') || t.id === 'hlIn' || t.id === 'sndIn')) {
     readSettingsDOM();
     render();
   }
