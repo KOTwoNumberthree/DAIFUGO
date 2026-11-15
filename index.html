@@ -5,10 +5,40 @@
 <meta charset="UTF-8">
 <meta name="description" content="革命・しばり・11バックなど多彩なルールで遊べる大富豪。CPUは弱い相手から圧倒的に強い相手まで選べます。サーバー不要で、友達とすぐ対戦できます">
 <title>大富豪｜ブラウザで遊べる完全無料カードゲーム</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="canonical" href="https://kotwonumberthree.github.io/DAIFUGO/">
+
+<!-- SNS（X・LINE・Discord等）シェア用 OGP設定 -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="大富豪｜ブラウザで遊べる完全無料カードゲーム">
+<meta property="og:description" content="インストール・サーバー不要！革命・しばり・11バック・7渡し対応。最強CPUとの対戦やQRコードで友達ともすぐ遊べる大富豪。">
+<meta property="og:url" content="https://kotwonumberthree.github.io/DAIFUGO/">
+<meta property="og:site_name" content="大富豪（DAIFUGO）">
+<meta property="og:image" content="https://kotwonumberthree.github.io/DAIFUGO/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Google検索向け構造化データ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "大富豪｜ブラウザで遊べる完全無料カードゲーム",
+  "url": "https://kotwonumberthree.github.io/DAIFUGO/",
+  "description": "革命・しばり・11バック・7渡しなど多彩なルールで遊べる完全無料の大富豪ブラウザゲーム。CPU対戦からQRコードを使った友達対戦まで対応。",
+  "applicationCategory": "GameApplication",
+  "genre": "Card Game",
+  "operatingSystem": "All",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JPY"
+  }
+}
+</script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%}
-body{font-family:var(--font);color:var(--text);background:var(--bg);display:flex;justify-content:center;min-height:100dvh;overflow-x:hidden}
+body{font-family:var(--font);color:var(--text);background:var(--bg);display:flex;flex-direction:column;align-items:center;min-height:100dvh;overflow-x:hidden}
 button,select,input{font:inherit;color:inherit}
 #app{width:100%;max-width:430px;min-height:100dvh;display:flex;flex-direction:column;background:var(--table);position:relative;overflow-x:hidden;box-shadow:0 0 40px rgba(0,0,0,.45)}
 .hidden{display:none!important}
@@ -513,7 +543,19 @@ table.board td:first-child{text-align:left}
 <div id="overlay" class="overlay hidden"></div>
 <div id="telop" class="telop hidden"></div>
 <div id="toast" class="toast hidden"></div>
-
+<details style="width:100%;max-width:430px;margin:12px auto 24px;padding:12px 16px;background:var(--panel);border:1px solid var(--frame);border-radius:var(--radius);font-size:13px;line-height:1.7;">
+  <summary style="cursor:pointer;font-weight:bold;color:var(--accent);">この「大富豪」の特徴・採用ルール一覧</summary>
+  <div style="margin-top:10px;">
+    <h1 style="font-size:15px;margin:0 0 6px;color:var(--accent2);">ブラウザで遊べる完全無料カードゲーム「大富豪」</h1>
+    <p style="margin:0 0 10px;">アプリのインストールや会員登録なしで、スマホ・PCのブラウザからすぐに遊べるトランプゲームです。</p>
+    <ul style="margin:0;padding-left:18px;">
+      <li><strong>多彩なローカルルール：</strong>革命、階段革命、しばり、11バック、8切り、7渡し、10捨て、スペ3返し、都落ちに対応。</li>
+      <li><strong>段階別のCPU強さ：</strong>弱いCPUから手強い上級CPUまで選択して対戦できます。</li>
+      <li><strong>サーバー不要の友達対戦：</strong>QRコード読み取り機能を搭載し、その場にいる友達とすぐに通信対戦が可能。</li>
+      <li><strong>豊富な着せ替えテーマ：</strong>カジノ・和風・ネオン・レトロなど画面テーマをいつでも切り替えられます。</li>
+    </ul>
+  </div>
+</details>
 <script>
 /* ---------- 埋め込みライブラリ（外部通信なし）----------
  * qrcode-generator 1.4.4 （Kazuhiko Arase, MIT License）
@@ -14750,7 +14792,11 @@ function titleHTML() {
     <button class="btn big" data-act="newGame">はじめから</button>
     <button class="btn big" data-act="mp">みんなで遊ぶ（同じWi-Fi）</button>
     <button class="btn ghost" data-act="rules">ルール説明</button>
+    <button class="btn ghost" data-act="inviteFriend">友達にURLを送る</button>
     <button class="btn small ghost" data-act="snd">効果音：${Sound.enabled ? 'ON' : 'OFF'}</button>
+    <p class="small" style="margin-top:8px;">
+      <a href="https://discord.gg/MuWDVf5M4A" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">感想・ルール要望はこちら（Discordサーバー）</a>
+    </p>
   </div>`;
 }
 
@@ -15430,6 +15476,9 @@ function closeOverlay() {
 }
 function openResult() {
   const g = UI.game;
+  const me = humanOf(g);
+  const myRank = me ? me.rank : '';
+  const myRole = me ? me.role : '';
   const rows = [...g.players].sort((a, b) => a.rank - b.rank).map(p =>
     `<tr><td>${p.rank}位</td><td>${esc(p.name)}</td><td><span class="role r${ROLE_ORDER.indexOf(p.role) + 1}">${p.role}</span></td></tr>`).join('');
   const fallNote = g.fallenId != null
@@ -15441,6 +15490,7 @@ function openResult() {
     <p class="small">次のゲームは同じ連続戦として、同じ設定で始まります。</p>
     <div class="col">
       <button class="btn big" data-act="next">次のゲーム</button>
+      <button class="btn" data-act="shareResult" data-rank="${myRank}" data-role="${esc(myRole)}">結果を𝕏（Twitter）でシェア</button>
       <button class="btn" data-act="board">スコアボード</button>
       <button class="btn ghost" data-act="endSeries">連続戦を終了</button>
     </div></div>`);
@@ -16036,6 +16086,28 @@ function endSeriesNow() {
 
 
 const ACTIONS = {
+  shareResult: b => {
+    const rank = b.dataset.rank;
+    const role = b.dataset.role;
+    const resText = role ? `【${rank}位・${role}】になりました！` : 'をプレイ中！';
+    const text = `無料ブラウザゲーム「大富豪」で${resText}\nインストール不要＆QRコードで友達とも対戦できます！🃏\n`;
+    const url = 'https://kotwonumberthree.github.io/DAIFUGO/';
+    const tags = '大富豪,ブラウザゲーム,無料ゲーム';
+    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(tags)}`, '_blank');
+  },
+  inviteFriend: async () => {
+    const shareData = {
+      title: '大富豪｜ブラウザで遊べる完全無料カードゲーム',
+      text: 'インストール不要ですぐ対戦できる大富豪！一緒に遊ぼう！',
+      url: 'https://kotwonumberthree.github.io/DAIFUGO/'
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch (e) {}
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(shareData.url);
+      toast('対戦用URLをコピーしました！LINEやDiscordで送れます');
+    }
+  },
   mp: () => { UI.screen = 'mp'; render(); },
   hostRoom: () => { UI.net = { role: 'host', peers: [] }; startHostWatch(); UI.screen = 'hostlobby'; render(); },
   guestRoom: () => { UI.net = null; UI.guest = { answer: null, name: '' }; UI.screen = 'guestjoin'; render(); },
