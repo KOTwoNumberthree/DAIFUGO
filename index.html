@@ -15641,6 +15641,81 @@ function openResult() {
       <button class="btn ghost" data-act="endSeries">連続戦を終了</button>
     </div></div>`);
 }
+
+/* ---------- スコアボードの画像保存（テーマの見た目をそのまま、右下にURL） ---------- */
+const SITE_URL = 'https://kotwonumberthree.github.io/DAIFUGO/';
+function copyComputedStyles(src, dst) {
+  const sEls = [src, ...src.querySelectorAll('*')];
+  const dEls = [dst, ...dst.querySelectorAll('*')];
+  sEls.forEach((s, i) => {
+    const cs = getComputedStyle(s);
+    let css = '';
+    for (let k = 0; k < cs.length; k++) {
+      const p = cs[k];
+      if (p.startsWith('transition') || p.startsWith('animation')) continue;
+      css += `${p}:${cs.getPropertyValue(p)};`;
+    }
+    dEls[i].setAttribute('style', css);
+  });
+}
+function saveBoardImage() {
+  const modal = document.querySelector('#overlay .modal');
+  if (!modal) return;
+  try {
+    // 表が画面より広い場合も切れないよう、表の幅に合わせて画像を広げる
+    const tbl = modal.querySelector('table');
+    const W = Math.max(Math.round(modal.getBoundingClientRect().width), (tbl ? tbl.scrollWidth : 0) + 80);
+    const bg = getComputedStyle(document.body).backgroundColor || '#ffffff';
+    const color = getComputedStyle(modal).color;
+    const family = getComputedStyle(modal).fontFamily;
+    const clone = modal.cloneNode(true);
+    copyComputedStyles(modal, clone);        // 先に見た目を写す（ボタン行は後で外す）
+    clone.querySelectorAll('.row, p.small').forEach(e => e.remove());
+    clone.style.width = (W - 40) + 'px';     // 余白（左右20px）を引いた幅
+    clone.style.height = 'auto'; clone.style.minHeight = '0'; clone.style.maxHeight = 'none';
+    clone.querySelectorAll('.tablewrap').forEach(e => { e.style.overflow = 'visible'; e.style.width = 'auto'; });
+    const foot = document.createElement('div');
+    foot.textContent = SITE_URL;
+    foot.setAttribute('style', `margin-top:14px;text-align:right;font-size:12px;opacity:.75;color:${color};font-family:${family};`);
+    const host = document.createElement('div');
+    host.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+    host.setAttribute('style', `width:${W}px;box-sizing:border-box;padding:20px;background:${bg};`);
+    host.append(clone, foot);
+    // 高さを実測してから描画（同じ文書内で一時的に測る）
+    const probe = host.cloneNode(true);
+    probe.setAttribute('style', host.getAttribute('style') + 'position:fixed;left:-10000px;top:0;');
+    document.body.appendChild(probe);
+    const H = Math.ceil(probe.getBoundingClientRect().height);
+    probe.remove();
+    const xml = new XMLSerializer().serializeToString(host);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><foreignObject x="0" y="0" width="${W}" height="${H}">${xml}</foreignObject></svg>`;
+    const img = new Image();
+    img.onload = () => {
+      const scale = 2;
+      const cv = document.createElement('canvas');
+      cv.width = W * scale; cv.height = H * scale;
+      const ctx = cv.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0, W, H);
+      cv.toBlob(blob => {
+        if (!blob) { toast('画像の作成に失敗しました'); return; }
+        const d = new Date(), p = x => String(x).padStart(2, '0');
+        const a = document.createElement('a');
+        const u = URL.createObjectURL(blob);
+        a.href = u;
+        a.download = `daifugou-scoreboard-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.png`;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(u), 1000);
+        toast('スコアボードの画像を保存しました');
+      }, 'image/png');
+    };
+    img.onerror = () => toast('画像の作成に失敗しました');
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  } catch (e) {
+    toast('画像の作成に失敗しました');
+  }
+}
+
 function openBoard() {
   const s = UI.series;
   if (!s) return;
@@ -15650,7 +15725,7 @@ function openBoard() {
     <h2>スコアボード</h2>
     <p class="small">この連続戦：${s.gameCount}ゲーム（${Persist.enabled() ? '保存ONのため、次回起動時も続きから再開できます。連続戦を終了すると記録は消えます' : '保存OFFのため、再読み込みすると記録は消えます。連続戦を終了しても消えます'}）</p>
     <div class="tablewrap"><table class="board"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
-    <div class="row"><button class="btn big" data-act="closeBoard">閉じる</button></div></div>`);
+    <div class="row"><button class="btn" data-act="saveBoardImg">画像を保存</button><button class="btn big" data-act="closeBoard">閉じる</button></div></div>`);
 }
 function openRules() {
   const rules = UI.series ? UI.series.rules : UI.draft.rules;
@@ -16297,6 +16372,7 @@ const ACTIONS = {
   mode: b => { UI.stairMode = b.dataset.m; renderStatus(UI.game); renderModeBar(UI.game); },
   quit: () => askConfirm('タイトルに戻ります。連続戦は終了します。', 'やめる', endAll),
   board: () => openBoard(),
+  saveBoardImg: () => saveBoardImage(),
   closeBoard: () => { if (UI.game && UI.game.over) openResult(); else closeOverlay(); },
   close: () => closeOverlay(),
   next: () => (isGuest() ? toast('次のゲームはホストが開始します') : startNewGame()),
