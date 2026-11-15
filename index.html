@@ -42,6 +42,7 @@ body{font-family:var(--font);color:var(--text);background:var(--bg);display:flex
 button,select,input{font:inherit;color:inherit}
 #app{width:100%;max-width:430px;min-height:100dvh;display:flex;flex-direction:column;background:var(--table);position:relative;overflow-x:hidden;box-shadow:0 0 40px rgba(0,0,0,.45)}
 .hidden{display:none!important}
+
 /* ---------- テーマ（CSS変数） ---------- */
 body[data-theme=casino]{
   --font:'Hiragino Mincho ProN','Yu Mincho',serif;
@@ -13960,6 +13961,7 @@ const Logic = (() => {
     target.hand = target.hand.concat(cards);
     const ev = [{ type: 'give', from: s.from, to: target.id, n: cards.length }];
     (state.hist = state.hist || []).push({ give: true, from: s.from, to: target.id, n: cards.length, rev: !!state.revolution });
+    (state.gaveLog = state.gaveLog || []).push({ from: s.from, to: target.id, ids: cards.map(c => c.id) });
     completeSeven(state, ev);
     return { ok: true, events: ev };
   }
@@ -14028,6 +14030,8 @@ const CPU = (() => {
       hist: (state.hist || []).slice(),
       nextSeat: L.nextSeat(state, idx),
       role: state.players[idx].role || null,
+      roles: state.players.map(p => p.role || null),
+      fixedMine: fixedMineOf(state, idx),
     };
   }
   function unseen(v) {
@@ -14102,6 +14106,140 @@ const CPU = (() => {
     // 圧倒的に強い：推測の数を増やし、順位だけでなく「最下位になる確率」も避ける。終盤は推測を増やす
     '圧倒的に強い': { samples: 32, maxCandidates: 15, budgetMs: 1800, maxIters: 6000, policy: "強い", usePass: true, bottomW: 0.32, endgameBoost: 1.5, treeDepth: 3, priorW: 0.58, leafEval: true, rolloutSteps: 85, exactMax: 48, C: 0.42 },
   };
+
+
+  // ===== 圧倒的に強い（改：信念サンプリング・終盤探索・連覇/包囲の報酬） =====
+  const KAI = '圧倒的に強い';
+  const KAI_Q_PASS = 0.35; // 合法手があるのにパスした場合の尤度係数（パスは任意なので強い証拠にはしない）
+  const cloneSt = s => JSON.parse(JSON.stringify(s));
+  // 自分の記憶だけから作る「相手の手札に確定している札」：自分が交換・7渡しで渡した札（＝渡し先の手札にある）
+  function fixedMineOf(state, me) {
+    const out = [];
+    (state.exchanges || []).forEach(e => {
+      if (e.giver === me && e.given && e.given.length) e.given.forEach(c => out.push({ id: c.id, to: e.receiver }));
+      if (e.receiver === me && e.returned && e.returned.length) e.returned.forEach(c => out.push({ id: c.id, to: e.giver }));
+    });
+    (state.gaveLog || []).forEach(g => { if (g.from === me) g.ids.forEach(id => out.push({ id, to: g.to })); });
+    return out;
+  }
+  // 信念状態からのサンプリング：固定配置 → 傾向・7渡しの重み付き抽出 → パス尤度（合法手があったのにパス＝Q倍）で採択
+  function beliefSample(v, pool, tilt, gifted, rev, Q) {
+    const fixed = {};
+    const left = new Map(pool.map(c => [c.id, c]));
+    (v.fixedMine || []).forEach(f => {
+      const c = left.get(f.id);
+      if (c && f.to !== v.me) { (fixed[f.to] = fixed[f.to] || []).push(c); left.delete(f.id); }
+    });
+    const passRecs = Object.entries(v.passRec || {}).map(([id, rec]) => [+id, rec]).filter(([id]) => id !== v.me);
+    let last = null;
+    for (let t = 0; t < 60; t++) {
+      const rem = Array.from(left.values());
+      const hands = {};
+      v.others.forEach(o => {
+        const k = o.finished ? 0 : o.count;
+        const hand = o.finished ? [] : (fixed[o.id] || []).slice();
+        while (hand.length < k && rem.length) {
+          const ws = rem.map(c => Math.exp(tilt[o.id] * (cpOf(c) - 8) / 7.5) * (gifted[o.id] && isolatedIn(c, rem, rev) ? 1.8 : 1));
+          const total = ws.reduce((a, b) => a + b, 0);
+          let r = Math.random() * total, j = 0;
+          for (; j < ws.length - 1; j++) { r -= ws[j]; if (r <= 0) break; }
+          hand.push(rem.splice(j, 1)[0]);
+        }
+        hands[o.id] = hand;
+      });
+      last = hands;
+      let w = 1;
+      passRecs.forEach(([id, rec]) => {
+        const c = L.ctxOf({ rules: v.rules, revolution: rec.revolution, elevenBack: rec.elevenBack, field: rec.field, bindActive: rec.bindActive });
+        if (L.legalPlays(hands[id] || [], c).length) w *= Q;
+      });
+      if (Math.random() < w) return hands;
+    }
+    return last;
+  }
+  // 相手の手（終盤探索用の固定モデル）：通常の「強い」の判断
+  function endDfs(st, me, budget) {
+    if (--budget.n < 0) return false;
+    if (st.over || st.players[me].finished) return st.finishOrder[0] === me;
+    if (st.phase === 'seven') {
+      const s = st.pendingSeven, p = st.players[s.from];
+      if (!L.giveSevenCards(st, chooseSevenCards(p.hand, L.sevenNeed(st), L.ctxOf(st), '強い')).ok) return false;
+      return endDfs(st, me, budget);
+    }
+    if (st.phase === 'discard') {
+      const d = st.pendingDiscard, p = st.players[d.from];
+      if (!L.discardCards(st, d.from, chooseDiscard(p.hand, L.discardNeed(st, d.from), L.ctxOf(st), '強い')).ok) return false;
+      return endDfs(st, me, budget);
+    }
+    if (st.phase !== 'play') return false;
+    if (!st.players[st.turn].finished && L.stuckCheck(st)) return endDfs(st, me, budget);
+    if (st.over) return st.finishOrder[0] === me;
+    const idx = st.turn;
+    if (idx === me) {
+      const plays = L.legalPlays(st.players[me].hand, L.ctxOf(st)).map(x => ({ cards: x.cards, rev: x.rev }));
+      if (st.field) plays.push({ cards: null, rev: false });
+      for (const a of plays) {
+        const c = cloneSt(st);
+        const ok = a.cards ? L.applyPlay(c, me, a.cards, a.rev ? 'rev' : 'normal').ok : L.applyPass(c, me).ok;
+        if (!ok) continue;
+        if (endDfs(c, me, budget)) return true;
+        if (budget.n < 0) return false;
+      }
+      return false;
+    }
+    const ch = choosePlay(view(st, idx), '強い');
+    const c = cloneSt(st);
+    let r = ch ? L.applyPlay(c, idx, ch.cards, ch.rev ? 'rev' : 'normal') : L.applyPass(c, idx);
+    if (!r.ok && c.field) r = L.applyPass(c, idx);
+    if (!r.ok) return false;
+    return endDfs(c, me, budget);
+  }
+  // 終盤（手札6枚以下）の探索：サンプルした相手手札の上で、自分が1位で上がれる手を深さ優先で探す。
+  // 「必勝の証明」ではなく、サンプル世界＋相手の固定モデルでの最善手探索。成立率が高い手だけを採用する。
+  function endgameMove(v, ctx) {
+    if (v.hand.length > 6 || v.others.every(o => o.finished)) return null;
+    const me = v.me;
+    const roots = L.legalPlays(v.hand, ctx).map(x => ({ cards: x.cards, rev: x.rev, key: actKey(x.cards, x.rev) }));
+    if (v.field) roots.push({ cards: null, rev: false, key: 'pass' });
+    if (!roots.length) return null;
+    const SAMPLES = 8, deadline = Date.now() + 700;
+    const wins = new Map(roots.map(a => [a.key, 0]));
+    let done = 0;
+    for (let s = 0; s < SAMPLES && Date.now() < deadline; s++) {
+      const hands = beliefSample(v, unseen(v), ovTendency(v), {}, v.revolution, KAI_Q_PASS);
+      done++;
+      for (const a of roots) {
+        if (Date.now() > deadline) break;
+        const st = worldState(v, hands);
+        const ok = a.cards ? L.applyPlay(st, me, a.cards, a.rev ? 'rev' : 'normal').ok : L.applyPass(st, me).ok;
+        if (ok && endDfs(st, me, { n: 3000 })) wins.set(a.key, wins.get(a.key) + 1);
+      }
+    }
+    if (!done) return null;
+    let best = null, bw = -1;
+    roots.forEach(a => { const w = wins.get(a.key); if (w > bw) { bw = w; best = a; } });
+    if (bw < Math.ceil(0.75 * done)) return null;
+    return best.cards ? { cards: best.cards, rev: best.rev } : { pass: true };
+  }
+  function worldState(v, hands) {
+    const n = v.others.length + 1;
+    return {
+      players: Array.from({ length: n }, (_, id) => {
+        const o = id === v.me ? null : v.others.find(x => x.id === id);
+        return { id, name: '', isHuman: false, level: '普通', role: v.roles ? v.roles[id] : null, rank: null,
+          hand: id === v.me ? v.hand.slice() : (hands[id] || []).slice(), finished: o ? !!o.finished : false };
+      }),
+      rules: v.rules, revolution: v.revolution, elevenBack: v.elevenBack, revCount: 0,
+      bind: v.bind ? { ...v.bind } : { suit: null, streak: 0, active: false },
+      field: v.fieldObj ? { ...v.fieldObj, cards: v.fieldObj.cards.slice() } : null,
+      passed: v.passed.slice(), turn: v.me, finishOrder: v.finishOrder.slice(), over: false,
+      phase: 'play', played: v.played.slice(), hist: (v.hist || []).slice(), exchanges: [], pendingSeven: null, pendingDiscard: null,
+      passRecord: { ...(v.passRec || {}) }, playId: 0, recorded: true, fallenId: null, gaveLog: [],
+    };
+  }
+
+
+  Object.assign(MC_CFG[KAI], { kai: true, qPass: KAI_Q_PASS, exactMax: 0 });
 
   function mcPick(v, ctx, items, lead, cfg) {
     const start = Date.now();
@@ -14363,6 +14501,7 @@ const CPU = (() => {
       }
     }
     const sampleHands = () => {
+      if (cfg.kai) return beliefSample(v, pool, tilt, gifted, v.revolution, cfg.qPass);
       if (exactSet) return exactSet[Math.floor(Math.random() * exactSet.length)];
       let h = dealWeighted(pool, v.others, tilt, gifted, v.revolution);
       for (let t = 0; t < 40 && !consistent(h); t++) h = dealWeighted(pool, v.others, tilt, gifted, v.revolution);
@@ -14423,6 +14562,11 @@ const CPU = (() => {
       let r = (n - rk) / (n - 1) - (rk === n ? bottomW : 0);
       if ((v.rules.exchange || v.rules.richStart) && rk <= 2) r += rk === 1 ? 0.08 : 0.04;
       if (seated && !v.rules.outcast && rk >= 3) r -= 0.08;
+      if (cfg.kai) {
+        if (v.role === '大富豪' && rk >= 2) r -= 0.15; // 連覇維持：親を失うのは大きい
+        const rich = v.roles ? v.roles.findIndex((rl, id) => rl === '大富豪' && id !== v.me && !st.players[id].finished) : -1;
+        if (v.role !== '大富豪' && rich >= 0 && rk === 1) r += 0.08; // 大富豪が残っている間に上がって包囲
+      }
       return r;
     };
     const tree = new Map();
@@ -14495,10 +14639,11 @@ const CPU = (() => {
   }
   // 非同期：画面の操作を止めないよう、少しずつ計算して結果を渡す
   function choosePlayAsync(v, level, cb) {
-    if (level !== '圧倒的に強い') { cb(choosePlay(v, level)); return; }
+    if (level !== '圧倒的に強い' && level !== KAI) { cb(choosePlay(v, level)); return; }
     const ctx = ctxOf(v);
     const plays = L.legalPlays(v.hand, ctx);
     if (!plays.length) { cb(null); return; }
+    if (level === KAI) { const eg = endgameMove(v, ctx); if (eg) { cb(eg.pass ? null : eg); return; } }
     const gen = ovGen(v, ctx, playItems(v, ctx, plays), !v.field, MC_CFG[level]);
     const step = () => {
       const t = Date.now();
@@ -14529,7 +14674,8 @@ const CPU = (() => {
     const lead = !v.field;
     const items = playItems(v, ctx, plays);
     let pick = null;
-    if (level === '圧倒的に強い') {
+    if (level === KAI) { const eg = endgameMove(v, ctx); if (eg) return eg.pass ? null : eg; }
+    if (level === '圧倒的に強い' || level === KAI) {
       pick = runSync(ovGen(v, ctx, items, lead, MC_CFG[level]));
       return pick ? { cards: pick.cards, rev: pick.rev } : null;
     }
