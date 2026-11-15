@@ -13918,6 +13918,7 @@ const Logic = (() => {
     from.hand = removeCards(from.hand, cards);
     target.hand = target.hand.concat(cards);
     const ev = [{ type: 'give', from: s.from, to: target.id, n: cards.length }];
+    (state.hist = state.hist || []).push({ give: true, from: s.from, to: target.id, n: cards.length, rev: !!state.revolution });
     completeSeven(state, ev);
     return { ok: true, events: ev };
   }
@@ -13985,6 +13986,7 @@ const CPU = (() => {
       passRec: { ...(state.passRecord || {}) },
       hist: (state.hist || []).slice(),
       nextSeat: L.nextSeat(state, idx),
+      role: state.players[idx].role || null,
     };
   }
   function unseen(v) {
@@ -14179,7 +14181,7 @@ const CPU = (() => {
   function ovTendency(v) {
     const turns = {}, passes = {};
     (v.hist || []).forEach(h => {
-      if (h.idx === v.me) return;
+      if (h.give || h.idx === v.me) return;
       turns[h.idx] = (turns[h.idx] || 0) + 1;
       if (h.pass) passes[h.idx] = (passes[h.idx] || 0) + 1;
     });
@@ -14191,14 +14193,21 @@ const CPU = (() => {
     return t;
   }
   // 推測の配り方：傾向に応じて、強い札を持っていそうな相手ほど強い札を多く配る（重み付きの抽出）
-  function dealWeighted(pool, others, tilt) {
+  // 公開情報：7渡しで札を受け取った相手は、送り手が手放したかった孤立札（同じ数字・隣の数字が未公開にない札）を持っていやすい
+  const isolatedIn = (c, pool, rev) => {
+    const lowOk = rev ? c.num >= 11 : c.num <= 8;
+    if (!lowOk) return false;
+    return !pool.some(x => x !== c && !L.isJoker(x) && (x.num === c.num || (x.suit === c.suit && Math.abs(x.num - c.num) === 1)));
+  };
+  function dealWeighted(pool, others, tilt, gifted, rev) {
     const remaining = pool.slice();
     const hands = {};
     others.forEach(o => {
       const hand = [];
       const k = o.finished ? 0 : o.count;
+      const boost = gifted && gifted[o.id] ? 1.8 : 1;
       for (let i = 0; i < k && remaining.length; i++) {
-        const ws = remaining.map(c => Math.exp(tilt[o.id] * (cpOf(c) - 8) / 7.5));
+        const ws = remaining.map(c => Math.exp(tilt[o.id] * (cpOf(c) - 8) / 7.5) * (boost > 1 && isolatedIn(c, remaining, rev) ? boost : 1));
         const total = ws.reduce((a, b) => a + b, 0);
         let r = Math.random() * total, j = 0;
         for (; j < ws.length - 1; j++) { r -= ws[j]; if (r <= 0) break; }
@@ -14212,29 +14221,48 @@ const CPU = (() => {
   function finishEstimate(cards, ctx) {
     if (!cards.length) return 0;
     const nat = cards.filter(c => !L.isJoker(c));
-    const jokers = cards.length - nat.length;
-    // 階段は「同じマークで連続する数字3枚以上」。マークごとに連続の塊を数え、その分は1手にまとめる
+    let jk = cards.length - nat.length;          // 残りのジョーカー
     let stairGroups = 0;
     const stairCards = new Set();
     if (ctx.rules.stairs) {
+      // 階段：同じマークで連続する数字3枚以上。ワイルド時はジョーカーで1つの飛び番を埋められる（端の延長も可）
       const bySuit = {};
       nat.forEach(c => { (bySuit[c.suit] = bySuit[c.suit] || []).push(c); });
+      let jkUsed = 0;
       Object.values(bySuit).forEach(list => {
-        const cs = list.slice().sort((a, b) => a.num - b.num);
-        let run = [];
-        const closeRun = () => { if (run.length >= 3) { stairGroups++; run.forEach(c => stairCards.add(c)); } run = []; };
+        const cs = list.slice().sort((x, y) => x.num - y.num);
+        let run = [], runJk = 0;
+        const closeRun = () => {
+          if (!run.length) return;
+          let eff = run.length + runJk;
+          let extra = 0;
+          if (eff < 3 && run.length >= 2 && ctx.rules.wild && jk - jkUsed - runJk > 0) extra = 1; // 端にジョーカーを足す
+          if (eff + extra >= 3) {
+            stairGroups++; jkUsed += runJk + extra; run.forEach(c => stairCards.add(c));
+          }
+          run = []; runJk = 0;
+        };
         cs.forEach(c => {
-          if (run.length && c.num === run[run.length - 1].num + 1) run.push(c);
-          else { closeRun(); run = [c]; }
+          if (!run.length) { run = [c]; runJk = 0; return; }
+          const last = run[run.length - 1];
+          const gap = c.num - last.num;
+          if (gap === 1) { run.push(c); return; }
+          if (gap === 2 && ctx.rules.wild && jk - jkUsed - runJk > 0) { run.push(c); runJk++; return; }
+          closeRun(); run = [c];
         });
         closeRun();
       });
+      jk -= jkUsed;
     }
     // 階段に使わなかった札は、同じ数字ごとに1手（組）
     const restRanks = new Set(nat.filter(c => !stairCards.has(c)).map(c => c.num));
     let groups = stairGroups + restRanks.size;
-    if (jokers) groups = Math.max(1, groups - 1); // ジョーカーは一つの組を補える
-    if (ctx.rules.noStrongFinish) groups += cards.filter(c => L.isStrongest(c, ctx)).length / cards.length; // 最強の札は最後に残りやすい
+    if (jk > 0 && groups > 0) groups = Math.max(1, groups - 1); // 残りのジョーカーは一つの組を補える
+    if (ctx.rules.noStrongFinish) {
+      // 最強の札は、同じ数字の相手がいなければ単騎で最後に残る（組にできれば痛くない）
+      const unpaired = cards.filter(c => !L.isJoker(c) && L.isStrongest(c, ctx) && !cards.some(x => x !== c && !L.isJoker(x) && x.num === c.num));
+      groups += unpaired.length / cards.length;
+    }
     return Math.max(0, groups);
   }
   function capItems(items, max) {
@@ -14267,6 +14295,8 @@ const CPU = (() => {
     const deadline = Date.now() + cfg.budgetMs;
     const pool = unseen(v);
     const tilt = ovTendency(v);
+    const gifted = {};
+    (v.hist || []).forEach(h => { if (h.give) gifted[h.to] = true; });
     const passRecs = Object.entries(v.passRec || {}).map(([id, rec]) => [+id, rec]).filter(([id]) => id !== v.me);
     const consistent = hands => passRecs.every(([id, rec]) => {
       const c = L.ctxOf({ rules: v.rules, revolution: rec.revolution, elevenBack: rec.elevenBack, field: rec.field, bindActive: rec.bindActive });
@@ -14293,8 +14323,8 @@ const CPU = (() => {
     }
     const sampleHands = () => {
       if (exactSet) return exactSet[Math.floor(Math.random() * exactSet.length)];
-      let h = dealWeighted(pool, v.others, tilt);
-      for (let t = 0; t < 40 && !consistent(h); t++) h = dealWeighted(pool, v.others, tilt);
+      let h = dealWeighted(pool, v.others, tilt, gifted, v.revolution);
+      for (let t = 0; t < 40 && !consistent(h); t++) h = dealWeighted(pool, v.others, tilt, gifted, v.revolution);
       return h;
     };
     const makeState = hands => ({
@@ -14345,7 +14375,15 @@ const CPU = (() => {
       st.players.forEach(p => { if (p.id !== v.me && !p.finished && finishEstimate(p.hand, c) < myEst) ahead++; });
       return Math.min(n, fin + 1 + ahead);
     };
-    const rewardOf = st => { const rk = rankOf(st); return (n - rk) / (n - 1) - (rk === n ? bottomW : 0); };
+    // 連戦の資産：交換・大富豪スタートがあるなら上位2位に次局の有利権、都落ちが無いなら上位の転落を重く見る
+    const seated = v.role === '大富豪' || v.role === '富豪';
+    const rewardOf = st => {
+      const rk = rankOf(st);
+      let r = (n - rk) / (n - 1) - (rk === n ? bottomW : 0);
+      if ((v.rules.exchange || v.rules.richStart) && rk <= 2) r += rk === 1 ? 0.08 : 0.04;
+      if (seated && !v.rules.outcast && rk >= 3) r -= 0.08;
+      return r;
+    };
     const tree = new Map();
     const prefs = new Map(); // 木の各節で、強いの考え方が選ぶ手（事前評価）
     const nodeFor = k => { let m = tree.get(k); if (!m) { m = new Map(); tree.set(k, m); } return m; };
@@ -14492,14 +14530,34 @@ const CPU = (() => {
     const sib = c => hand.filter(x => x.num === c.num).length;
     const keepSets = level === '強い' || level === 'とても強い' || level === '極めて強い' || level === '圧倒的に強い';
     const intent = keepSets && revIntentCtx(hand, ctx);
-    const cost = c => (intent ? -L.cardPower(c, ctx) : L.cardPower(c, ctx)) + (keepSets ? (sib(c) - 1) * 3 : 0);
+    // 保護：ジョーカーと最強の札は、渡す・返す・捨てる候補の最後に回す（革命狙いの符号反転でも前に来ない）
+    const protectW = c => (keepSets && (L.isJoker(c) || L.isStrongest(c, ctx)) ? 50 : 0);
+    const cost = c => (intent && !protectW(c) ? -L.cardPower(c, ctx) : L.cardPower(c, ctx)) + (keepSets ? (sib(c) - 1) * 3 : 0) + protectW(c);
     if (level === '極めて弱い' || level === '圧倒的に弱い') return hand.slice().sort((a, b) => L.cardPower(b, ctx) - L.cardPower(a, ctx));
     return hand.slice().sort((a, b) => cost(a) - cost(b));
   };
 
   // 7渡し：渡す札のid（とても弱いは無作為、とても強いは組を残す）
+  // 探索：渡す・返す・捨てる候補（上位の候補から組み合わせ）を作り、残りの手札の手数見積もりと保護違反で評価して選ぶ
+  const SEARCH_LEVELS = ['極めて強い', '圧倒的に強い'];
+  function searchSubset(hand, count, ctx, level) {
+    const order = keepOrder(hand, ctx, level);
+    const pool = order.slice(0, Math.min(order.length, count + 5));
+    let subs = kSubsets(pool, count);
+    if (subs.length > 40) subs = subs.slice(0, 40);
+    let best = null, bestS = Infinity;
+    subs.forEach(sub => {
+      const ids = new Set(sub.map(c => c.id));
+      const rest = hand.filter(c => !ids.has(c.id));
+      const penalty = sub.reduce((s, c) => s + (L.isJoker(c) ? 3 : L.isStrongest(c, ctx) ? 1.5 : 0), 0);
+      const score = finishEstimate(rest, ctx) + penalty;
+      if (score < bestS) { bestS = score; best = sub; }
+    });
+    return best ? best.map(c => c.id) : null;
+  }
   function chooseSevenCards(hand, count, ctx, level) {
     if (level === 'とても弱い') return L.shuffle(hand.slice()).slice(0, count).map(c => c.id);
+    if (SEARCH_LEVELS.includes(level)) { const r = searchSubset(hand, count, ctx, level); if (r) return r; }
     return keepOrder(hand, ctx, level).slice(0, count).map(c => c.id);
   }
 
@@ -14510,11 +14568,16 @@ const CPU = (() => {
       const nj = L.shuffle(hand.filter(c => !L.isJoker(c)));
       return nj.concat(hand.filter(c => L.isJoker(c))).slice(0, count);
     }
+    if (SEARCH_LEVELS.includes(level)) {
+      const ids = searchSubset(hand, count, ctx, level);
+      if (ids) return hand.filter(c => ids.includes(c.id));
+    }
     return keepOrder(hand, ctx, level).slice(0, count);
   }
   // 10捨て：弱い札から順に捨てる（ジョーカーは最後）。戻り値: 捨てる札のid
   function chooseDiscard(hand, count, ctx, level) {
     if (level === 'とても弱い') return L.shuffle(hand.slice()).slice(0, count).map(c => c.id);
+    if (SEARCH_LEVELS.includes(level)) { const r = searchSubset(hand, count, ctx, level); if (r) return r; }
     return keepOrder(hand, ctx, level).slice(0, count).map(c => c.id);
   }
   return { view, choosePlay, choosePlayAsync, chooseSevenCards, chooseReturn, chooseDiscard };
