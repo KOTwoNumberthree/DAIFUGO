@@ -537,6 +537,34 @@ table.board td:first-child{text-align:left}
   .actions{padding:16px 40px 32px}
   .field-wrap{padding:10px 36px}
 }
+
+/* 学びの支援（履歴・ヒント・振り返り） */
+.actions [hidden] { display: none !important; }
+.card.suggest { outline: 3px solid #ffd54a; box-shadow: 0 0 12px #ffd54a; transform: translateY(-8px); }
+.hintline { margin-top: 4px; font-size: 14px; }
+.hintline small { display: block; opacity: .75; font-size: 12px; }
+.loglist { max-height: 50vh; overflow: auto; text-align: left; margin: 8px 0; }
+.logrow { padding: 4px 0; border-bottom: 1px solid rgba(128, 128, 128, .25); font-size: 14px; }
+.fx { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 8px; font-size: 12px; background: rgba(255, 200, 80, .25); }
+.stairPick { flex-wrap: wrap; justify-content: center; }
+.stairPick .btn { display: flex; flex-direction: column; align-items: center; min-width: 150px; }
+.stairPick small { opacity: .8; }
+.rvrow { border-top: 1px solid rgba(128, 128, 128, .25); padding: 6px 0; text-align: left; }
+.rvrow p { margin: 2px 0; font-size: 14px; }
+
+/* ヒント・振り返りのCPUの選択（4つのボタン。スマホでも押しやすい大きさ） */
+.lvrule { align-items: flex-start; flex-wrap: wrap; }
+.lvwrap { flex: 1 1 100%; min-width: 0; }
+.lvgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; width: 100%; max-width: 560px; }
+.lvbtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; padding: 8px 6px; border-radius: 10px; border: 1px solid var(--frame); background: var(--panel); color: var(--text); cursor: pointer; text-align: center; }
+.lvbtn b { font-size: 14px; }
+.lvbtn small { font-size: 11px; opacity: .8; }
+.lvbtn.on { background: rgba(255, 255, 255, .12); outline: 2px solid var(--accent); outline-offset: -2px; }
+.lvbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 360px) { .lvgrid { grid-template-columns: 1fr; } }
+
+/* パス予約ボタン */
+#btnPassRes.on { background: rgba(255,255,255,.12); outline: 2px solid var(--accent); outline-offset: -2px; }
 </style>
 </head>
 <body data-theme="casino">
@@ -13555,13 +13583,14 @@ const Logic = (() => {
     return null;
   }
   // 手の種類判定（場の制約は含めない）。effNums はジョーカーを埋めた後の数字。
-  function playInfo(cards, ctx, mode = 'normal') {
+  // lo を渡すと、その並び（階段の開始数字）を使う。省略時は従来どおり一番強い並び。
+  function playInfo(cards, ctx, mode = 'normal', lo = null) {
     const r = ctx.rules;
     if (!cards.length) return fail('札を選んでください');
     const nat = cards.filter(c => !isJoker(c));
     if (!r.wild && nat.length && nat.length < cards.length) return fail('ジョーカーは、ワイルドをONにしたときだけ数字の代わりに使えます');
     // 数字の組（ジョーカーは同じ数字に合わせて入る）
-    if (!nat.length || nat.every(c => c.num === nat[0].num)) {
+    if (lo == null && (!nat.length || nat.every(c => c.num === nat[0].num))) {
       if (mode === 'rev') return fail('階段革命は同じマークの連続4枚以上で出してください');
       if (!nat.length) return { ok: true, kind: 'set', len: cards.length, power: 100, rev: false, effNums: [] };
       return { ok: true, kind: 'set', len: cards.length, power: cardPower(nat[0], ctx), rev: false,
@@ -13574,23 +13603,29 @@ const Logic = (() => {
     if (eff === 'rev' && cards.length < 4) return fail('階段革命は同じマークの連続4枚以上で出してください');
     const wins = stairWindows(cards);
     if (!wins.length) return fail('階段は連続する数字で出してください');
-    let best = null;
-    for (const w of wins) {
+    const scored = wins.map(w => {
       let power = -Infinity;
       for (let n = w.lo; n <= w.hi; n++) power = Math.max(power, numPower(n, ctx));
-      if (!best || power > best.power) best = { ...w, power };
+      return { ...w, power };
+    });
+    let best = null;
+    if (lo != null) {
+      best = scored.find(w => w.lo === lo) || null;
+      if (!best) return fail('選んだ並びは、この札では使えません');
+    } else {
+      for (const w of scored) if (!best || w.power > best.power) best = w;
     }
     const effNums = [];
     for (let n = best.lo; n <= best.hi; n++) effNums.push(n);
-    return { ok: true, kind: 'stair', len: cards.length, power: best.power, rev: eff === 'rev', effNums };
+    return { ok: true, kind: 'stair', len: cards.length, power: best.power, rev: eff === 'rev', effNums, lo: best.lo, hi: best.hi };
   }
   // 場に対して出せるかの総合判定。場の情報は ctx.fieldInfo（kind, len, power, rev）。
-  function evaluatePlay(cards, ctx, mode = 'normal') {
-    const p = playInfo(cards, ctx, mode);
+  function evaluatePlay(cards, ctx, mode = 'normal', lo = null) {
+    const p = playInfo(cards, ctx, mode, lo);
     if (!p.ok) return p;
     const f = ctx.field, fi = ctx.fieldInfo;
     // 場の札の強さは、今の順番（革命・11バックの状態）で計算し直す。保存された値は古い順番のことがあるため使わない。
-    const fieldPower = f && f.length && fi ? (playInfo(f, ctx, fi.rev ? 'rev' : 'normal').power) : null;
+    const fieldPower = f && f.length && fi ? (playInfo(f, ctx, fi.rev ? 'rev' : 'normal', fi.lo ?? null).power) : null;
     if (f && f.length && fi && fi.unbeatable) return fail('スペードの3には勝てません。この場は流れるまで誰も勝てません');
     if (ctx.rules.spade3Joker && f && f.length === 1 && isJoker(f[0]) && fi && !fi.rev && cards.length === 1 && isSpadeThree(cards[0]))
       return { ...p, unbeatable: true };
@@ -13623,7 +13658,32 @@ const Logic = (() => {
   // 手札から出せる全ての手。{cards, rev} の配列（CPUとハイライトで使用）
   function legalPlays(hand, ctx) {
     const out = [];
+    const seen = new Set();
     const add = cards => {
+      // 数字の組と階段の両方で出せる手（自然札1枚＋ジョーカー）と、ジョーカー入りで階段の候補が2つ以上ある手は、
+      // 候補ごとに別の手として出す。組は lo なし、階段は lo ごと。
+      const wins = cards.some(isJoker) ? stairWindows(cards) : [];
+      const natC = cards.filter(c => !isJoker(c));
+      const sameNum = natC.length > 0 && natC.every(c => c.num === natC[0].num);
+      if (wins.length > 1 || (sameNum && wins.length > 0)) {
+        const ids = cards.map(c => c.id).sort().join('.');
+        const push = (rev, lo) => {
+          const k = ids + '|' + lo + '|' + (rev ? 'R' : 'N');
+          if (seen.has(k)) return;
+          seen.add(k);
+          out.push(lo == null ? { cards, rev } : { cards, rev, lo });
+        };
+        if (sameNum) {
+          const a = evaluatePlay(cards, ctx, 'normal');
+          if (a.ok && a.kind === 'set') push(false, null);
+        }
+        for (const w of wins) {
+          const a = evaluatePlay(cards, ctx, 'normal', w.lo);
+          if (a.ok) push(!!a.rev, w.lo);
+          if (ctx.rules.stairs && ctx.rules.stairRev && cards.length >= 4 && evaluatePlay(cards, ctx, 'rev', w.lo).ok) push(true, w.lo);
+        }
+        return;
+      }
       const a = evaluatePlay(cards, ctx, 'normal');
       if (a.ok) out.push({ cards, rev: !!a.rev });
       if (ctx.rules.stairs && ctx.rules.stairRev && cards.length >= 4 && evaluatePlay(cards, ctx, 'rev').ok)
@@ -13710,7 +13770,7 @@ const Logic = (() => {
     const state = {
       players, rules: { ...series.rules }, revolution: false, elevenBack: false, revCount: 0,
       field: null, passed: Array(n).fill(false), turn: 0, finishOrder: [], over: false,
-      phase: 'play', played: [], hist: [], exchanges: [], pendingSeven: null,
+      phase: 'play', played: [], hist: [], log: [], exchanges: [], pendingSeven: null,
       playId: 0, recorded: false, fallenId: null, pendingDiscard: null, bind: freshBind(),
     };
     if (series.rules.exchange && players.every(p => p.role)) {
@@ -13872,14 +13932,30 @@ const Logic = (() => {
     state.played.push(...cards);
     state.pendingDiscard = null;
     state.phase = 'play';
+    logPush(state, { t: 'discard', idx, cards: cards.map(logCard), cnt: cards.length, fin: p.hand.length === 0 });
     const ev = [{ type: 'discard', idx, n: cards.length, cards }];
     if (p.hand.length === 0) finishPlayer(state, idx, ev);
     if (!state.over) finishEffects(state, idx, 0, d.eight, ev);
     return { ok: true, events: ev };
   }
-  function applyPlay(state, idx, cards, mode = 'normal') {
+  // 表示用の局の履歴（state.log）。CPUの計算（hist）とは別に持つ。札の情報は表示側で見せる範囲を決める。
+  const logCard = c => ({ suit: c.suit, num: c.num });
+  function logPush(state, e) { const log = state.log = state.log || []; log.push({ ...e, n: log.length + 1 }); }
+  // 手の効果（applyPlay と同じ条件）。呼ぶのは手札を減らす前・効果を適用する前
+  function playFx(state, info) {
+    const r = state.rules, nums = info.effNums || [];
+    return {
+      rev: !!info.rev,
+      revo: !info.rev && info.kind === 'set' && info.len >= 4 && !!r.revolution && (info.len === 4 || !!r.revMin4),
+      eleven: !!r.elevenBack && !state.elevenBack && nums.includes(11),
+      eight: !!r.eightCut && nums.includes(8),
+      tens: r.tenDump ? nums.filter(n => n === 10).length : 0,
+      sevens: r.sevenPass ? nums.filter(n => n === 7).length : 0,
+    };
+  }
+  function applyPlay(state, idx, cards, mode = 'normal', lo = null) {
     const ctx = ctxOf(state);
-    const info = evaluatePlay(cards, ctx, mode);
+    const info = evaluatePlay(cards, ctx, mode, lo);
     if (!info.ok) return info;
     if (bansStrongFinish(cards, state.players[idx].hand, ctx)) return fail('最強のカードでは上がれません');
     const p = state.players[idx];
@@ -13888,10 +13964,11 @@ const Logic = (() => {
     state.played.push(...cards);
     if (ctx.rules.bind) updateBind(state, cards);
     (state.hist = state.hist || []).push({ idx, pass: false, n: cards.length, p: info.power });
+    logPush(state, { t: 'play', idx, cards: cards.map(logCard), kind: info.kind, len: info.len, rev: !!info.rev, lo: info.lo ?? null, fx: playFx(state, info), fin: p.hand.length === 0 });
     state.playId++;
     state.passed.fill(false);
-    state.field = { cards: cards.slice(), owner: idx, kind: info.kind, len: info.len, rev: info.rev, power: info.power, unbeatable: !!info.unbeatable };
-    const ev = [{ type: 'play', idx, cards: cards.slice(), kind: info.kind, len: info.len, rev: info.rev }];
+    state.field = { cards: cards.slice(), owner: idx, kind: info.kind, len: info.len, rev: info.rev, power: info.power, unbeatable: !!info.unbeatable, lo: info.lo ?? null, hi: info.hi ?? null };
+    const ev = [{ type: 'play', idx, cards: cards.slice(), kind: info.kind, len: info.len, rev: info.rev, lo: info.lo ?? null }];
     if (info.unbeatable) ev.push({ type: 'spade3' });
 
     if (info.rev) toggleRevolution(state, ev, 'stairRev');
@@ -13927,12 +14004,14 @@ const Logic = (() => {
     state.passRecord[idx] = { field: { ...state.field, cards: state.field.cards.slice() }, revolution: state.revolution, elevenBack: state.elevenBack, bindActive: !!(state.bind && state.bind.active) };
     state.passed[idx] = true;
     (state.hist = state.hist || []).push({ idx, pass: true, n: 0, p: 0 });
+    logPush(state, { t: 'pass', idx });
     const ev = [{ type: 'pass', idx }];
     const owner = state.field.owner;
     const remaining = state.players.filter(p => !p.finished && p.id !== owner && !state.passed[p.id]);
     if (remaining.length === 0) {
       clearField(state);
       ev.push({ type: 'flush' });
+      logPush(state, { t: 'flush' });
       state.turn = state.players[owner].finished ? nextIndex(state, owner) : owner;
     } else {
       state.turn = nextIndex(state, idx);
@@ -13962,6 +14041,7 @@ const Logic = (() => {
     const ev = [{ type: 'give', from: s.from, to: target.id, n: cards.length }];
     (state.hist = state.hist || []).push({ give: true, from: s.from, to: target.id, n: cards.length, rev: !!state.revolution });
     (state.gaveLog = state.gaveLog || []).push({ from: s.from, to: target.id, ids: cards.map(c => c.id) });
+    logPush(state, { t: 'give', from: s.from, to: target.id, cards: cards.map(logCard), cnt: cards.length });
     completeSeven(state, ev);
     return { ok: true, events: ev };
   }
@@ -13993,7 +14073,7 @@ const Logic = (() => {
 
   return {
     SUITS, SUIT_SYM, ROLE_NAMES, label, isJoker, kindText, createDeck, shuffle,
-    cardPower, isStairShape, playInfo, evaluatePlay, legalPlays, ctxOf, nextSeat, stuckCheck, isStrongest,
+    cardPower, isStairShape, stairWindows, playInfo, evaluatePlay, legalPlays, ctxOf, nextSeat, stuckCheck, isStrongest,
     startGame, pendingExchange, pickStrongest, exchangeGive, exchangeReturn,
     sevenTargets, sevenNeed, discardNeed, giveSevenCards, applyPlay, applyPass, assignRoles, leaderIndex, discardCards,
     roleForRank, removeCards,
@@ -14019,7 +14099,7 @@ const CPU = (() => {
       bindActive: state.bind ? !!state.bind.active : false,
       field: state.field ? state.field.cards.slice() : null,
       fieldObj: state.field ? { ...state.field, cards: state.field.cards.slice() } : null,
-      fieldInfo: state.field ? { kind: state.field.kind, len: state.field.len, rev: state.field.rev, power: state.field.power, unbeatable: state.field.unbeatable } : null,
+      fieldInfo: state.field ? { kind: state.field.kind, len: state.field.len, rev: state.field.rev, power: state.field.power, unbeatable: state.field.unbeatable, lo: state.field.lo ?? null } : null,
       others: state.players.filter(p => p.id !== idx).map(p => ({
         id: p.id, count: p.hand.length, finished: p.finished, passed: state.passed[p.id],
       })),
@@ -14104,7 +14184,7 @@ const CPU = (() => {
     'とても強い': { samples: 8, maxCandidates: 10, budgetMs: 600, policy: '普通', usePass: false },
     '極めて強い': { samples: 12, maxCandidates: 12, budgetMs: 2000, policy: '強い', usePass: true },
     // 圧倒的に強い：推測の数を増やし、順位だけでなく「最下位になる確率」も避ける。終盤は推測を増やす
-    '圧倒的に強い': { samples: 32, maxCandidates: 15, budgetMs: 1800, maxIters: 6000, policy: "強い", usePass: true, bottomW: 0.32, endgameBoost: 1.5, treeDepth: 3, priorW: 0.58, leafEval: true, rolloutSteps: 85, exactMax: 48, C: 0.42 },
+    '圧倒的に強い': { samples: 32, maxCandidates: 15, budgetMs: 1800, maxIters: 6000, policy: "強い", usePass: true, bottomW: 0.32, endgameBoost: 1.5, treeDepth: 3, priorW: 0.58, leafEval: true, rolloutSteps: 85, C: 0.42 },
   };
 
 
@@ -14176,11 +14256,11 @@ const CPU = (() => {
     if (st.over) return st.finishOrder[0] === me;
     const idx = st.turn;
     if (idx === me) {
-      const plays = L.legalPlays(st.players[me].hand, L.ctxOf(st)).map(x => ({ cards: x.cards, rev: x.rev }));
+      const plays = L.legalPlays(st.players[me].hand, L.ctxOf(st)).map(x => ({ cards: x.cards, rev: x.rev, lo: x.lo }));
       if (st.field) plays.push({ cards: null, rev: false });
       for (const a of plays) {
         const c = cloneSt(st);
-        const ok = a.cards ? L.applyPlay(c, me, a.cards, a.rev ? 'rev' : 'normal').ok : L.applyPass(c, me).ok;
+        const ok = a.cards ? L.applyPlay(c, me, a.cards, a.rev ? 'rev' : 'normal', a.lo ?? null).ok : L.applyPass(c, me).ok;
         if (!ok) continue;
         if (endDfs(c, me, budget)) return true;
         if (budget.n < 0) return false;
@@ -14189,7 +14269,7 @@ const CPU = (() => {
     }
     const ch = choosePlay(view(st, idx), '強い');
     const c = cloneSt(st);
-    let r = ch ? L.applyPlay(c, idx, ch.cards, ch.rev ? 'rev' : 'normal') : L.applyPass(c, idx);
+    let r = ch ? L.applyPlay(c, idx, ch.cards, ch.rev ? 'rev' : 'normal', ch.lo ?? null) : L.applyPass(c, idx);
     if (!r.ok && c.field) r = L.applyPass(c, idx);
     if (!r.ok) return false;
     return endDfs(c, me, budget);
@@ -14199,7 +14279,7 @@ const CPU = (() => {
   function endgameMove(v, ctx) {
     if (v.hand.length > 6 || v.others.every(o => o.finished)) return null;
     const me = v.me;
-    const roots = L.legalPlays(v.hand, ctx).map(x => ({ cards: x.cards, rev: x.rev, key: actKey(x.cards, x.rev) }));
+    const roots = L.legalPlays(v.hand, ctx).map(x => ({ cards: x.cards, rev: x.rev, lo: x.lo, key: actKey(x.cards, x.rev, x.lo) }));
     if (v.field) roots.push({ cards: null, rev: false, key: 'pass' });
     if (!roots.length) return null;
     const SAMPLES = 8, deadline = Date.now() + 700;
@@ -14211,7 +14291,7 @@ const CPU = (() => {
       for (const a of roots) {
         if (Date.now() > deadline) break;
         const st = worldState(v, hands);
-        const ok = a.cards ? L.applyPlay(st, me, a.cards, a.rev ? 'rev' : 'normal').ok : L.applyPass(st, me).ok;
+        const ok = a.cards ? L.applyPlay(st, me, a.cards, a.rev ? 'rev' : 'normal', a.lo ?? null).ok : L.applyPass(st, me).ok;
         if (ok && endDfs(st, me, { n: 3000 })) wins.set(a.key, wins.get(a.key) + 1);
       }
     }
@@ -14219,7 +14299,7 @@ const CPU = (() => {
     let best = null, bw = -1;
     roots.forEach(a => { const w = wins.get(a.key); if (w > bw) { bw = w; best = a; } });
     if (bw < Math.ceil(0.75 * done)) return null;
-    return best.cards ? { cards: best.cards, rev: best.rev } : { pass: true };
+    return best.cards ? { cards: best.cards, rev: best.rev, lo: best.lo } : { pass: true };
   }
   function worldState(v, hands) {
     const n = v.others.length + 1;
@@ -14239,7 +14319,7 @@ const CPU = (() => {
   }
 
 
-  Object.assign(MC_CFG[KAI], { kai: true, qPass: KAI_Q_PASS, exactMax: 0 });
+  Object.assign(MC_CFG[KAI], { kai: true, qPass: KAI_Q_PASS });
 
   function mcPick(v, ctx, items, lead, cfg) {
     const start = Date.now();
@@ -14248,7 +14328,7 @@ const CPU = (() => {
     // 候補：同じ種類・強さの手は1つにまとめ、弱い順に並べて均等に間引く
     const seen = new Set();
     const uniq = items.filter(x => {
-      const k = `${x.n}|${x.p}|${x.rev}|${x.flush}|${x.ext}`;
+      const k = `${x.n}|${x.p}|${x.rev}|${x.flush}|${x.ext}|${x.lo ?? ''}`;
       if (seen.has(k)) return false;
       seen.add(k); return true;
     }).sort((a, b) => a.p - b.p);
@@ -14319,7 +14399,7 @@ const CPU = (() => {
         if (st.players[idx].finished) break;
         const choice = choosePlay(view(st, idx), MC.policy);
         if (!choice) { if (!L.applyPass(st, idx).ok) break; }
-        else if (!L.applyPlay(st, idx, choice.cards, choice.rev ? 'rev' : 'normal').ok) break;
+        else if (!L.applyPlay(st, idx, choice.cards, choice.rev ? 'rev' : 'normal', choice.lo ?? null).ok) break;
       }
       return st;
     };
@@ -14336,7 +14416,7 @@ const CPU = (() => {
       for (const hands of samples) {
         const st = makeState(hands);
         const ok = opt.item
-          ? L.applyPlay(st, v.me, opt.item.cards, opt.item.rev ? 'rev' : 'normal').ok
+          ? L.applyPlay(st, v.me, opt.item.cards, opt.item.rev ? 'rev' : 'normal', opt.item.lo ?? null).ok
           : L.applyPass(st, v.me).ok;
         if (!ok) { total += n + 1; bottom++; continue; }
         rollout(st);
@@ -14354,7 +14434,7 @@ const CPU = (() => {
 
   // ---------- 圧倒的に強い：不完全情報向けの探索（ISMCTS）と推定 ----------
   const runSync = gen => { let r; do { r = gen.next(); } while (!r.done); return r.value; };
-  const actKey = (cards, rev) => (rev ? 'R' : 'N') + cards.map(c => c.id).sort().join('.');
+  const actKey = (cards, rev, lo) => (rev ? 'R' : 'N') + (lo != null ? 'L' + lo + ':' : '') + cards.map(c => c.id).sort().join('.');
   const cpOf = c => Math.min(15, L.cardPower(c, { revolution: false, elevenBack: false }));
   // 相手ごとの傾向：パスが少ない人ほど、場に勝てる強い札を持っていそうだと推定する（推定の信号はパス率だけ）
   function ovTendency(v) {
@@ -14447,7 +14527,7 @@ const CPU = (() => {
   function capItems(items, max) {
     const seen = new Set();
     const uniq = items.filter(x => {
-      const k = `${x.n}|${x.p}|${x.rev}|${x.flush}|${x.ext}`;
+      const k = `${x.n}|${x.p}|${x.rev}|${x.flush}|${x.ext}|${x.lo ?? ''}`;
       if (seen.has(k)) return false;
       seen.add(k); return true;
     }).sort((a, b) => a.p - b.p);
@@ -14540,7 +14620,7 @@ const CPU = (() => {
         if (st.players[idx].finished) break;
         const choice = choosePlay(view(st, idx), cfg.policy);
         if (!choice) { if (!L.applyPass(st, idx).ok) break; }
-        else if (!L.applyPlay(st, idx, choice.cards, choice.rev ? 'rev' : 'normal').ok) break;
+        else if (!L.applyPlay(st, idx, choice.cards, choice.rev ? 'rev' : 'normal', choice.lo ?? null).ok) break;
       }
       return st;
     };
@@ -14573,11 +14653,11 @@ const CPU = (() => {
     const prefs = new Map(); // 木の各節で、強いの考え方が選ぶ手（事前評価）
     const nodeFor = k => { let m = tree.get(k); if (!m) { m = new Map(); tree.set(k, m); } return m; };
     const legalActs = st => {
-      const acts = L.legalPlays(st.players[st.turn].hand, L.ctxOf(st)).map(x => ({ cards: x.cards, rev: x.rev, key: actKey(x.cards, x.rev) }));
+      const acts = L.legalPlays(st.players[st.turn].hand, L.ctxOf(st)).map(x => ({ cards: x.cards, rev: x.rev, lo: x.lo, key: actKey(x.cards, x.rev, x.lo) }));
       if (st.field) acts.push({ cards: null, rev: false, key: 'pass' });
       return acts;
     };
-    const applyAct = (st, idx, a) => (a.cards ? L.applyPlay(st, idx, a.cards, a.rev ? 'rev' : 'normal') : L.applyPass(st, idx)).ok;
+    const applyAct = (st, idx, a) => (a.cards ? L.applyPlay(st, idx, a.cards, a.rev ? 'rev' : 'normal', a.lo ?? null) : L.applyPass(st, idx)).ok;
     const C = cfg.C !== undefined ? cfg.C : 0.6;
     const pickUcb = (node, acts, pref) => {
       const untried = acts.filter(a => !node.has(a.key));
@@ -14592,7 +14672,7 @@ const CPU = (() => {
       }
       return { a: best, fresh: false };
     };
-    const rootActs = capItems(items, cfg.maxCandidates).map(x => ({ item: x, key: actKey(x.cards, x.rev) }));
+    const rootActs = capItems(items, cfg.maxCandidates).map(x => ({ item: x, key: actKey(x.cards, x.rev, x.lo) }));
     if (!lead) rootActs.push({ item: null, cards: null, rev: false, key: 'pass' });
     const root = nodeFor('R');
     let iters = 0, lastYield = Date.now();
@@ -14602,10 +14682,10 @@ const CPU = (() => {
       if (Date.now() - lastYield > 8) { yield; lastYield = Date.now(); }
       const st = makeState(sampleHands());
       const path = [];
-      if (cfg.priorW && !prefs.has('R')) { const pk = choosePlay(view(st, v.me), cfg.policy); prefs.set('R', pk ? actKey(pk.cards, pk.rev) : 'pass'); }
+      if (cfg.priorW && !prefs.has('R')) { const pk = choosePlay(view(st, v.me), cfg.policy); prefs.set('R', pk ? actKey(pk.cards, pk.rev, pk.lo) : 'pass'); }
       const sel = pickUcb(root, rootActs, prefs.get('R'));
       if (sel.fresh) root.set(sel.a.key, { N: 0, W: 0 });
-      const ra = sel.a.item !== undefined ? { cards: sel.a.item ? sel.a.item.cards : null, rev: sel.a.item ? sel.a.item.rev : false, key: sel.a.key } : sel.a;
+      const ra = sel.a.item !== undefined ? { cards: sel.a.item ? sel.a.item.cards : null, rev: sel.a.item ? sel.a.item.rev : false, lo: sel.a.item ? sel.a.item.lo : undefined, key: sel.a.key } : sel.a;
       if (!applyAct(st, v.me, ra)) continue;
       path.push(['R', ra.key]);
       let key = 'R|' + ra.key, depth = 0;
@@ -14614,7 +14694,7 @@ const CPU = (() => {
         const acts = legalActs(st);
         if (!acts.length) break;
         const node = nodeFor(key);
-        if (cfg.priorW && !prefs.has(key)) { const pk = choosePlay(view(st, st.turn), cfg.policy); prefs.set(key, pk ? actKey(pk.cards, pk.rev) : 'pass'); }
+        if (cfg.priorW && !prefs.has(key)) { const pk = choosePlay(view(st, st.turn), cfg.policy); prefs.set(key, pk ? actKey(pk.cards, pk.rev, pk.lo) : 'pass'); }
         const s2 = pickUcb(node, acts, prefs.get(key));
         if (s2.fresh) node.set(s2.a.key, { N: 0, W: 0 });
         path.push([key, s2.a.key]);
@@ -14649,7 +14729,7 @@ const CPU = (() => {
       const t = Date.now();
       for (;;) {
         const r = gen.next();
-        if (r.done) { cb(r.value ? { cards: r.value.cards, rev: r.value.rev } : null); return; }
+        if (r.done) { cb(r.value ? { cards: r.value.cards, rev: r.value.rev, lo: r.value.lo } : null); return; }
         if (Date.now() - t > 12) break;
       }
       setTimeout(step, 0);
@@ -14660,8 +14740,8 @@ const CPU = (() => {
   // 戻り値: {cards, rev} または null（パス）
   function playItems(v, ctx, plays) {
     return plays.map(x => ({
-      cards: x.cards, rev: x.rev, n: x.cards.length,
-      p: L.playInfo(x.cards, ctx, x.rev ? 'rev' : 'normal').power,
+      cards: x.cards, rev: x.rev, lo: x.lo, n: x.cards.length,
+      p: L.playInfo(x.cards, ctx, x.rev ? 'rev' : 'normal', x.lo ?? null).power,
       flush: flushes(x.cards, v.rules, x.rev),
       ext: reduceExtra(x.cards, v),
       revMake: makesRevolution(x, ctx),
@@ -14677,7 +14757,7 @@ const CPU = (() => {
     if (level === KAI) { const eg = endgameMove(v, ctx); if (eg) return eg.pass ? null : eg; }
     if (level === '圧倒的に強い' || level === KAI) {
       pick = runSync(ovGen(v, ctx, items, lead, MC_CFG[level]));
-      return pick ? { cards: pick.cards, rev: pick.rev } : null;
+      return pick ? { cards: pick.cards, rev: pick.rev, lo: pick.lo } : null;
     }
     if (level === '圧倒的に弱い') {
       // 戦略がなく、目先の1手だけで決める。場があれば気まぐれにパスし、場が空なら一番強い手を出す（強い札を早く使う）
@@ -14709,7 +14789,7 @@ const CPU = (() => {
       pick = strongPick(v, ctx, items, lead);
     }
     if (!pick && lead) pick = items[0];
-    return pick ? { cards: pick.cards, rev: pick.rev } : null;
+    return pick ? { cards: pick.cards, rev: pick.rev, lo: pick.lo } : null;
   }
 
   // 手札を「残したい価値」の順に並べる（同じ数字の札は、組として残す。ジョーカーは最後）
@@ -14841,7 +14921,8 @@ const UI = {
   theme: 'casino', highlight: true, sortMode: 'num',
   selected: new Set(), messages: [], lastPlayId: -1, dealAnim: false, fieldSig: '', fieldHTML: '', fxSeq: 0, fxSeen: 0, fxEvents: [],
   stairMode: 'normal',
-  timer: null, overlay: null,
+  timer: null, overlay: null, stairPick: null,
+  review: [], reviewFull: false, hintUses: 0, hintBusy: false, hint: null, hintToken: 0, hintOn: loadHintPref(), hintLv: 'とても強い', passRes: false,
   exchange: null, exMode: 'give', exSel: new Set(), exStep: 'select',
   seven: { target: null, sel: null },
   myId: 0, net: null, invitePeer: null, confirmFn: null, confirmBack: null,
@@ -14891,6 +14972,7 @@ function cardHTML(c, o = {}) {
   if (o.sel) cls.push('sel');
   if (o.dim) cls.push('dim');
   if (o.hint) cls.push('hint');
+  if (o.sug) cls.push('suggest');
   return `<div class="${cls.join(' ')}" data-cid="${c.id}">${body}</div>`;
 }
 
@@ -14912,6 +14994,7 @@ function render() {
   const app = $('#app');
   const pages = { title: titleHTML, settings: settingsHTML, hostlobby: settingsHTML, mp: mpHTML,
     guestjoin: guestJoinHTML, guestlobby: guestLobbyHTML };
+  if (UI.screen !== 'game') UI.passRes = false;
   app.innerHTML = pages[UI.screen] ? pages[UI.screen]() : gameHTML();
   document.querySelectorAll('[data-theme-pick]').forEach(s => { s.value = UI.theme; });
   renderAll();
@@ -14979,6 +15062,12 @@ function settingsHTML() {
       <div><b>効果音（卓上のカード音）</b><small>カードを切る・出す・パスするなどの現実的な卓上音を鳴らします（いつでも切り替え可能）</small></div></label>
     <label class="lbl">テーマ
       <select class="sel" data-theme-pick>${themeOptions()}</select></label>
+    <label class="rule"><input id="hintIn" type="checkbox" ${UI.hintOn ? 'checked' : ''}>
+      <div><b>ヒントを使う（既定はOFF）</b><small>ONのとき、自分の番で「ヒント」を押すとCPUの目安の手を光らせます（自動では出しません）。1人プレイのときだけ使えます。</small></div></label>
+    <div class="rule lvrule"><div class="lvwrap">
+      <b>ヒント・振り返りのCPU</b><small>ヒントと振り返りで比べるCPUの強さです。選ぶとすぐ保存されます。</small>
+      <div class="lvgrid" role="radiogroup" aria-label="ヒント・振り返りのCPUの強さ">${HINT_LEVELS.map(l => `<button type="button" class="lvbtn ${l === UI.hintLv ? 'on' : ''}" role="radio" aria-checked="${l === UI.hintLv}" data-act="hintLv" data-v="${l}"><b>${l}</b><small>${HINT_LV_TIME[l]}</small></button>`).join('')}</div>
+    </div></div>
     <label class="rule"><input id="persistIn" type="checkbox" ${Persist.enabled() ? 'checked' : ''}>
       <div><b>設定と記録をブラウザに保存する（データ永続化）</b><small>ONのとき、名前・CPU設定・ルール・テーマ・連続戦の記録を、このブラウザの中だけに保存します。外部へは送りません</small></div></label>
     <button class="btn big" data-act="start">ゲーム開始</button>
@@ -15008,6 +15097,9 @@ function gameHTML() {
   <div class="actions">
     <button class="btn big" id="btnPlay" data-act="play">出す</button>
     <button class="btn big ghost" id="btnPass" data-act="pass">パス</button>
+    <button class="btn small ghost" id="btnPassRes" data-act="passRes" hidden>パス予約</button>
+    <button class="btn small ghost" id="btnLog" data-act="log" hidden>履歴</button>
+    <button class="btn small ghost" id="btnHint" data-act="hint" hidden>ヒント</button>
   </div>`;
 }
 
@@ -15017,6 +15109,19 @@ function renderAll() {
   if (UI.screen !== 'game' || !g) return;
   renderBadges(g); renderOpps(g); renderField(g); renderHand(g);
   renderStatus(g); renderModeBar(g); renderButtons(g);
+  if (g.over) UI.passRes = false;
+  // パス予約：自分の番が来たら予約を消費する。場が空なら（先手で）パスできないので予約だけ消す
+  if (UI.passRes && isHumanTurn(g) && g.phase === 'play') {
+    UI.passRes = false;
+    if (g.field) {
+      setTimeout(() => {
+        const cur = UI.game;
+        if (cur && cur.phase === 'play' && isHumanTurn(cur) && cur.field) humanPass();
+      }, 400);
+    } else {
+      toast('場が空のため、予約したパスは使わずに自分で出します');
+    }
+  }
   if (isHumanTurn(g)) {
     const tk = `${g.playId}-${g.turn}`;
     if (UI.turnSoundKey !== tk) {
@@ -15096,6 +15201,7 @@ function renderHand(g) {
     sel: UI.selected.has(c.id),
     hint: my && UI.highlight && ok.has(c.id),
     dim: my && UI.highlight && !ok.has(c.id),
+    sug: !!(UI.hint && UI.hint.ids.has(c.id)),
   })).join('');
   hEl.classList.toggle('deal', UI.dealAnim);
   if (!hEl.dataset.fadeBound) { hEl.addEventListener('scroll', updateHandFade, { passive: true }); hEl.dataset.fadeBound = '1'; }
@@ -15119,10 +15225,12 @@ function renderStatus(g) {
     const sel = me.hand.filter(c => UI.selected.has(c.id));
     if (me.finished) html = me.stuck ? '上がれないまま最後まで残りました。残りの対局を見守りましょう' : '上がりました。残りの対局を見守りましょう';
     else if (sel.length) {
-      const r = Logic.evaluatePlay(sel, Logic.ctxOf(g), playMode(g, sel));
+      let r = Logic.evaluatePlay(sel, Logic.ctxOf(g), playMode(g, sel));
+      if (!r.ok) { const alt = playCandidates(g, sel, playMode(g, sel)); if (alt.length) r = alt[0].info; }
       html = r.ok ? `<span class="ok">出せます（${Logic.kindText(r.kind, r.len, r.rev)}）</span>` : `<span class="ng">${esc(r.reason)}</span>`;
     } else html = g.field ? 'あなたの番です。出す札を選ぶか、パスしてください' : 'あなたの番です。場は空です。札を選んで出してください';
   }
+  if (UI.hint && isHumanTurn(g)) html += `<div class="hintline">ヒント：${esc(UI.hint.reason)}<small>（CPUの目安で、正解とは限りません）</small></div>`;
   const log = UI.messages.slice(-2).map(m => `<div>${esc(m)}</div>`).join('');
   $('#status').innerHTML = `<div>${html}</div><div class="log">${log}</div>`;
 }
@@ -15139,9 +15247,21 @@ function renderButtons(g) {
   const my = isHumanTurn(g);
   $('#btnPlay').disabled = !my;
   $('#btnPass').disabled = !my || !g.field;
+  // パス予約：自分の番ではないとき、次の自分の番で自動的にパスする（場がある場合だけ使える）
+  const pr = $('#btnPassRes');
+  if (pr) {
+    const can = !!g && g.phase === 'play' && !g.over && !my;
+    pr.hidden = !can;
+    pr.textContent = `パス予約：${UI.passRes ? 'ON' : 'OFF'}`;
+    pr.classList.toggle('on', !!UI.passRes);
+  }
   $('#btnSort').textContent = `並べ替え：${UI.sortMode === 'num' ? '数字順' : 'マーク順'}`;
   $('#btnHl').textContent = `ハイライト：${UI.highlight ? 'ON' : 'OFF'}`;
   const sb = $('#btnSnd'); if (sb) sb.textContent = `音：${Sound.enabled ? 'ON' : 'OFF'}`;
+  const solo = isSoloGame(g);
+  const lb = $('#btnLog'); if (lb) lb.hidden = !solo;
+  const hb = $('#btnHint');
+  if (hb) { hb.hidden = !(solo && UI.hintOn); hb.disabled = !my || UI.hintBusy; hb.textContent = UI.hintBusy ? '考え中…' : 'ヒント'; }
 }
 
 /* ---------- ゲームの進行 ---------- */
@@ -15287,7 +15407,7 @@ function cpuTurn(g) {
   const token = (UI.cpuToken = {});
   CPU.choosePlayAsync(CPU.view(g, idx), p.level, choice => {
     if (UI.cpuToken !== token || UI.game !== g || g.over || g.phase !== 'play' || g.turn !== idx) return;
-    let res = choice ? Logic.applyPlay(g, idx, choice.cards, choice.rev ? 'rev' : 'normal') : Logic.applyPass(g, idx);
+    let res = choice ? Logic.applyPlay(g, idx, choice.cards, choice.rev ? 'rev' : 'normal', choice.lo ?? null) : Logic.applyPass(g, idx);
     if (!res.ok && g.field) res = Logic.applyPass(g, idx);
     if (!res.ok) return;
     afterAction(g, res.events);
@@ -15339,11 +15459,427 @@ function humanPlay() {
   const me = humanOf(g);
   const cards = me.hand.filter(c => UI.selected.has(c.id));
   if (!cards.length) { toast('出す札を選んでください'); return; }
-  submit({ k: 'play', ids: cards.map(c => c.id), mode: playMode(g, cards) });
+  UI.hint = null;
+  const mode = playMode(g, cards);
+  const items = playCandidates(g, cards, mode);
+  if (items.length >= 2) { openStairPick(cards, mode, items); return; }
+  if (items.length === 1) { submit({ k: 'play', ids: cards.map(c => c.id), mode, lo: items[0].lo }); return; }
+  submit({ k: 'play', ids: cards.map(c => c.id), mode });   // 出せない手は、その理由を出す
+}
+// 出せる候補の一覧。数字の組（lo なし）と、階段（lo ごと）のうち、場に対して有効なものだけ返す。
+// 候補が1つのときも返す（その候補の lo を明示して送るため）。
+function playCandidates(g, cards, mode) {
+  const ctx = Logic.ctxOf(g);
+  const out = [];
+  const natC = cards.filter(c => !Logic.isJoker(c));
+  const sameNum = natC.length > 0 && natC.every(c => c.num === natC[0].num);
+  if (sameNum) {
+    const s = Logic.evaluatePlay(cards, ctx, 'normal');
+    if (s.ok && s.kind === 'set') out.push({ lo: null, hi: null, info: s, effects: stairEffects(g, s) });
+  }
+  if (cards.some(c => Logic.isJoker(c))) {
+    for (const w of Logic.stairWindows(cards)) {
+      const info = Logic.evaluatePlay(cards, ctx, mode, w.lo);
+      if (info.ok) out.push({ lo: w.lo, hi: w.hi, info, effects: stairEffects(g, info) });
+    }
+  }
+  return out;
+}
+// 候補の表示名：組は「7-7-7（3枚組）」、階段は「5-6-7」
+function candLabel(it) {
+  const seq = (lo, hi) => Array.from({ length: hi - lo + 1 }, (_, i) => Logic.label(lo + i)).join('-');
+  if (it.lo == null) return Array.from({ length: it.info.len }, () => Logic.label(it.info.effNums[0])).join('-') + '（3枚組）';
+  return seq(it.lo, it.hi);
+}
+// 候補を出したときに起きる効果（Logic.applyPlay と同じ条件で判定する）
+function stairEffects(g, info) {
+  const out = [];
+  if (info.rev) out.push('革命');
+  if (g.rules.eightCut && info.effNums.includes(8)) out.push('8切り');
+  const tens = g.rules.tenDump ? info.effNums.filter(n => n === 10).length : 0;
+  if (tens) out.push(`10捨て${tens}枚`);
+  if (g.rules.elevenBack && !g.elevenBack && info.effNums.includes(11)) out.push('11バック');
+  const sevens = g.rules.sevenPass ? info.effNums.filter(n => n === 7).length : 0;
+  if (sevens) out.push(`7渡し${sevens}枚`);
+  return out;
+}
+function openStairPick(cards, mode, items) {
+  // 初めの選択は、従来どおりの自動の手（同じ数字の組を優先）
+  const auto = Logic.playInfo(cards, Logic.ctxOf(UI.game), mode);
+  const want = auto.ok && auto.kind !== 'set' ? auto.lo : null;
+  const hit = items.find(it => (it.lo ?? null) === want);
+  const def = hit ? (hit.lo ?? null) : (items[0].lo ?? null);
+  UI.stairPick = { ids: cards.map(c => c.id), mode, lo: def };
+  const btns = items.map(it => `<button class="btn ${(it.lo ?? null) === def ? 'on' : ''}" data-act="stairPick" data-lo="${it.lo == null ? 'set' : it.lo}">
+      <b>${candLabel(it)}</b><small>${it.effects.length ? it.effects.join('・') : '効果なし'}</small></button>`).join('');
+  openOverlay('stairpick', `<div class="modal"><h2>出し方を選ぶ</h2>
+    <p class="hint">同じ札でも、数字の組と階段のどちらで出すかで効果が変わります。選んでください（初めの候補が自動の選び方です）。</p>
+    <div class="row stairPick">${btns}</div>
+    <div class="row"><button class="btn big" data-act="stairPickGo">この出し方で出す</button>
+    <button class="btn ghost small" data-act="close">やめる</button></div></div>`);
 }
 function humanPass() {
   if (!isHumanTurn(UI.game)) return;
+  UI.hint = null;
   submit({ k: 'pass' });
+}
+/* ---------- 学びの支援（1人プレイのときだけ）：履歴・ヒント・振り返り ---------- */
+const REVIEW_MAX = 60;
+const RV = { token: 0, stop: false };
+function isSoloGame(g) { return !!g && g.players.filter(p => p.isHuman).length === 1; }
+function loadHintPref() { try { return localStorage.getItem('daifugou_hint') === '1'; } catch (e) { return false; } }
+function loadHintLv() {
+  try { const v = localStorage.getItem('daifugou_hintLv'); return HINT_LEVELS.includes(v) ? v : HINT_LV_DEFAULT; } catch (e) { return HINT_LV_DEFAULT; }
+}
+function setHintLv(v) {
+  UI.hintLv = HINT_LEVELS.includes(v) ? v : HINT_LV_DEFAULT;
+  try { localStorage.setItem('daifugou_hintLv', UI.hintLv); } catch (e) { /* 保存できなくても動く */ }
+}
+function setHintPref(on) { UI.hintOn = !!on; try { localStorage.setItem('daifugou_hint', on ? '1' : '0'); } catch (e) { /* 保存できなくても動く */ } }
+// ヒントと振り返りの一言。view（人間から見た局面）と、CPUの提案 pick から決める
+/* ---- 純粋な関数（DOM に触れない。テストで読み込む）ここから ---- */
+const HINT_LEVELS = ['強い', 'とても強い', '極めて強い', '圧倒的に強い'];
+const HINT_LV_DEFAULT = 'とても強い';
+const HINT_LV_TIME = { '強い': '一瞬', 'とても強い': '1秒弱', '極めて強い': '数秒かかることがあります', '圧倒的に強い': '数秒かかることがあります' };
+// 比べる手数の上限（強さごと）。上限を超えるときは、手札が少ない終盤の手を優先する
+const REVIEW_LIMIT = { '強い': 60, 'とても強い': 40, '極めて強い': 20, '圧倒的に強い': 14 };
+function viewCtx(view) {
+  return { rules: view.rules, revolution: view.revolution, elevenBack: view.elevenBack, field: view.field, fieldInfo: view.fieldInfo, bindActive: !!view.bindActive };
+}
+// その手の効果（applyPlay と同じ条件）。出せない手は null
+function moveFx(view, cards, rev, lo) {
+  const info = Logic.playInfo(cards, viewCtx(view), rev ? 'rev' : 'normal', lo ?? null);
+  if (!info || !info.ok) return null;
+  const r = view.rules, nums = info.effNums || [];
+  const natC = cards.filter(c => !Logic.isJoker(c));
+  const suit = natC.length && natC.every(c => c.suit === natC[0].suit) ? natC[0].suit : null;
+  const b = view.bind;
+  return { info, fx: {
+    rev: !!info.rev,
+    revo: !info.rev && info.kind === 'set' && info.len >= 4 && !!r.revolution && (info.len === 4 || !!r.revMin4),
+    eleven: !!r.elevenBack && !view.elevenBack && nums.includes(11),
+    eight: !!r.eightCut && nums.includes(8),
+    tens: r.tenDump ? nums.filter(n => n === 10).length : 0,
+    sevens: r.sevenPass ? nums.filter(n => n === 7).length : 0,
+    bind: !!r.bind && !!suit && !!b && b.suit === suit && b.streak >= 1 && !b.active,
+  } };
+}
+// 効果の名前（革命・8切り・11バック・10捨て・7渡し）。分類と一言の両方で使う
+function effLabels(fx) {
+  const t = [];
+  if (fx.rev || fx.revo) t.push('革命');
+  if (fx.eight) t.push('8切り');
+  if (fx.eleven) t.push('11バック');
+  if (fx.tens) t.push('10捨て');
+  if (fx.sevens) t.push('7渡し');
+  return t;
+}
+// ヒントと振り返りの一言。優先順位どおりに最初に当てはまるものを返す
+function hintReason(view, pick) {
+  if (!pick) {
+    const legal = Logic.legalPlays(view.hand, viewCtx(view));
+    return legal.length ? '強い札を温存するため、パスが有利です' : 'いま出せる札がないのでパスです';
+  }
+  const mv = moveFx(view, pick.cards, pick.rev, pick.lo);
+  if (!mv) return 'この手が場の流れに合っています';
+  const f = mv.fx;
+  if (view.hand.length === pick.cards.length) return '上がれます';
+  if (f.rev || f.revo) return '革命が狙えます';
+  if (f.eight) return '8切りで場を流して親になれます';
+  if (f.eleven) return '11バックで強さが逆転します';
+  if (f.tens) return '10捨てで余った札を減らせます';
+  if (f.sevens) return '7渡しで弱い札を相手に渡せます';
+  if (f.bind) return 'しばりで相手の出せる札を絞れます';
+  if (!view.field || !view.field.length) return '弱い札から出して、強い札を温存できます';
+  if (pick.cards.length === 1 && !Logic.isJoker(pick.cards[0])) {
+    const ctx = viewCtx(view);
+    const mine = view.hand.filter(c => !Logic.isJoker(c)).map(c => Logic.cardPower(c, ctx));
+    if (mine.length && Logic.cardPower(pick.cards[0], ctx) === Math.min(...mine)) return 'いちばん小さい札で勝てます';
+  }
+  if (pick.cards.length >= 2) return 'まとめて出して手札を減らせます';
+  return 'この手が場の流れに合っています';
+}
+// 違う手の分類。優先順位は、効果の差 → 出せる場面でパスした → 出さずに温存すべき場面 → 強い札を早く使った → 形が違う（残りはその他）
+const CLS_LABEL = { effect: '効果の差', passLate: '出せる場面でパスした', holdBack: '出さずに温存すべき場面', strongEarly: '強い札を早く使った', shape: '形が違う', other: 'その他' };
+const CLS_ORDER = ['effect', 'passLate', 'holdBack', 'strongEarly', 'shape', 'other'];
+function classifyDiff(view, mine, pick) {
+  const mCards = mine.pass ? null : mine.ids.map(id => view.hand.find(c => c.id === id)).filter(Boolean);
+  const mv = (!mine.pass && mCards && mCards.length) ? moveFx(view, mCards, mine.rev, mine.lo) : null;
+  const pv = pick ? moveFx(view, pick.cards, pick.rev, pick.lo) : null;
+  const ml = mv ? effLabels(mv.fx) : [], pl = pv ? effLabels(pv.fx) : [];
+  if (ml.some(x => !pl.includes(x)) || pl.some(x => !ml.includes(x))) return 'effect';
+  if (mine.pass && pick) return 'passLate';
+  if (!mine.pass && !pick) return 'holdBack';
+  if (mv && pv) {
+    const sameShape = mv.info.len === pv.info.len && mv.info.kind === pv.info.kind;
+    if (sameShape && mv.info.power > pv.info.power) return 'strongEarly';
+    if (!sameShape) return 'shape';
+  }
+  return 'other';
+}
+// 比べる手を選ぶ。合法手が1つ以下の場面は除く。上限を超えるときは手札が少ない手を優先し、記録順に並べ直す
+function pickReviewRecords(recs, lv) {
+  const limit = REVIEW_LIMIT[lv] || REVIEW_LIMIT[HINT_LV_DEFAULT];
+  const eligible = recs.map((r, idx) => ({ r, idx, hand: r.view.hand.length, legal: Logic.legalPlays(r.view.hand, viewCtx(r.view)).length }))
+    .filter(x => x.legal >= 2);
+  let chosen = eligible;
+  if (eligible.length > limit) {
+    chosen = eligible.slice().sort((a, b) => a.hand - b.hand || a.idx - b.idx).slice(0, limit).sort((a, b) => a.idx - b.idx);
+  }
+  return { list: chosen.map(x => x.r), eligible: eligible.length };
+}
+// 総括の文章（テンプレートの組み合わせ。乱数は使わず、局数で選ぶ）
+const REVIEW_TPL = {
+  p1: [
+    s => `この局は${s.n}人中${s.rank}位で、役は「${s.role}」として、手札と場の流れを見ながら戦い抜きました。`,
+    s => `${s.n}人で争ったこの局は${s.rank}位で終わり、役は「${s.role}」として、流れに応じた手を重ねた一局でした。`,
+    s => `${s.n}人中${s.rank}位という結果で、役は「${s.role}」として、局の最後まで粘り強く戦いました。`,
+  ],
+  p2mine: [
+    s => `あなたも革命を起こし、場の強さの順番を入れ替えて、局の流れを大きく動かす場面がありました。`,
+    s => `あなたが革命で場の勢いを引き寄せ、その後も手の選び方で流れを保ち続けた局でした。`,
+  ],
+  p2rev: [
+    s => `局中に革命が${s.roundRevs}回起き、場の強さが何度も入れ替わって、手の選び方が問われる展開でした。`,
+    s => `革命が${s.roundRevs}回あり、手札の強さの順番が何度もひっくり返る、慌ただしい局でした。`,
+  ],
+  p2eight: [
+    s => `あなたが8切りで場を流し、そこから主導権を握って局を進める場面がありました。`,
+    s => `8切りで場をリセットできた場面があり、その流れのまま局を進められた一局でした。`,
+  ],
+  p2pass: [
+    s => `パスで流れを見送る場面が多く、場の動きを見極めながらじっくり様子を見る局でした。`,
+    s => `パスを重ねて場の動きを見極めた場面が多い、落ち着いた立ち上がりの局でした。`,
+  ],
+  p2calm: [
+    s => `大きな革命はなく、手札の強さを見ながら一手ずつ堅実に進めた、落ち着いた局でした。`,
+    s => `派手な場面は少なく、その時々の強さを確かめながら一手ずつ進んだ、穏やかな局でした。`,
+  ],
+  p3: {
+    high: [
+      s => `比べた${s.compared}手のうち${s.matched}手がCPUの提案と一致し、手の選び方はよく合っていました。`,
+      s => `比べた${s.compared}手中${s.matched}手でCPUの提案と同じ手を選べていて、全体によく合っていました。`,
+    ],
+    mid: [
+      s => `比べた${s.compared}手のうち${s.matched}手が一致し、合う場面と違う場面が混ざっていました。`,
+      s => `比べた${s.compared}手中${s.matched}手が一致し、ところどころ違う手を選んだ局でした。`,
+    ],
+    low: [
+      s => `比べた${s.compared}手のうち${s.matched}手の一致にとどまり、違う手を選んだ場面が多くありました。`,
+      s => `比べた${s.compared}手中${s.matched}手しか一致せず、CPUとは選び方が大きく違う局でした。`,
+    ],
+  },
+  p4: {
+    effect: [
+      s => `革命や8切りなどの効果は、流れを変えるタイミングを選ぶと効きやすくなります。`,
+      s => `効果のある手は、場の流れが変わる場面で使うと大きな力になります。`,
+    ],
+    passLate: [
+      s => `出せる場面で見送ると流れを逃しやすいので、手札の余裕と相談して選んでみてください。`,
+      s => `場が動いたときは、出せる手があるかを一度確かめると流れを取りやすくなります。`,
+    ],
+    holdBack: [
+      s => `強い札は、ここぞの場面まで取っておくと選べる手が増えるので、出す場面を絞ってみてください。`,
+      s => `出すかどうかを迷う場面では、次の手番で役立つ札を残す考え方も役立ちます。`,
+    ],
+    strongEarly: [
+      s => `強い札を早く使うと後の切り札が残りにくくなるので、ここぞの場面まで取っておくと選べる手が増えます。`,
+      s => `強い札は最後の勝負どころまで残しておくと、場の流れに合わせて動きやすくなります。`,
+    ],
+    shape: [
+      s => `枚数や組・階段の形をそろえると、場に合った手を出しやすくなります。`,
+      s => `場と同じ枚数・同じ形で応じられる手を先に探すと、選び直しが減ってまとまりやすくなります。`,
+    ],
+    other: [
+      s => `同じ形でも、場の強さに合わせて出す札を選ぶと安定しやすくなります。`,
+      s => `場の強さを確かめてから札を選ぶと、同じ形の中でも選びやすい手が見つかります。`,
+    ],
+    none: [
+      s => `大きな差はなく、手の選び方はCPUの提案によく合っていました。`,
+      s => `CPUの提案と大きくずれた場面は少なく、落ち着いて選べていました。`,
+    ],
+    // 比べた手が3手未満で、差の傾向がつかめないとき
+    few: [
+      s => `今回は比べた手が少ないため、差の傾向は参考程度にとどめてご覧ください。`,
+      s => `比べた手が少ない局なので、CPUとの違いは参考としてお受け取りください。`,
+    ],
+  },
+  p5hint: [
+    s => `ヒントを${s.hintUses}回使いましたが、ヒントは考え方の目安として使い、次は自分で候補を比べてみるのもおすすめです。`,
+    s => `ヒントを${s.hintUses}回見ながら進めましたが、次は、ヒントを見る前に自分で候補を並べてみるのも良いでしょう。`,
+  ],
+  p5none: [
+    s => `次の局も、今回気になった場面を振り返りながら、楽しみながら進めてみてください。`,
+    s => `次の局では、今回気になった場面を意識しつつ、ゆとりを持って進めてみてください。`,
+  ],
+};
+// 強い分類（件数が最も多いもの。同数なら CLS_ORDER の順）。差がなければ none
+function dominantCls(cats) {
+  let best = 'none', bestN = 0;
+  for (const k of CLS_ORDER) { const n = cats[k] || 0; if (n > bestN) { best = k; bestN = n; } }
+  return best;
+}
+// 総括の文章。1段落・改行なし・全角150〜260字。文は3〜5文（比べた手が3手未満のときは比較の文を省く）
+function buildReviewSummary(stats) {
+  const num = v => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const s = {
+    n: num(stats.n) || 3, rank: num(stats.rank) || 1, role: stats.role || '—',
+    roundRevs: num(stats.roundRevs), myRevs: num(stats.myRevs), my8: num(stats.my8), myPasses: num(stats.myPasses),
+    compared: num(stats.compared), matched: num(stats.matched), hintUses: num(stats.hintUses),
+    cats: stats.cats || {}, gameCount: num(stats.gameCount),
+  };
+  const base = Math.max(0, Math.floor(s.gameCount));
+  const rateBand = s.matched / Math.max(1, s.compared) >= 0.7 ? 'high' : (s.matched / Math.max(1, s.compared) >= 0.4 ? 'mid' : 'low');
+  const p2list = s.myRevs > 0 ? REVIEW_TPL.p2mine : s.roundRevs > 0 ? REVIEW_TPL.p2rev : s.my8 > 0 ? REVIEW_TPL.p2eight : s.myPasses >= 3 ? REVIEW_TPL.p2pass : REVIEW_TPL.p2calm;
+  const build = k => {
+    const pick = (arr, j) => arr[(base + k + j) % arr.length];
+    const parts = [
+      pick(REVIEW_TPL.p1, 1)(s),
+      pick(p2list, 2)(s),
+      s.compared >= 3 ? pick(REVIEW_TPL.p3[rateBand], 3)(s) : '',
+      pick(s.compared < 3 && dominantCls(s.cats) === 'none' ? REVIEW_TPL.p4.few : (REVIEW_TPL.p4[dominantCls(s.cats)] || REVIEW_TPL.p4.none), 4)(s),
+      pick(s.hintUses > 0 ? REVIEW_TPL.p5hint : REVIEW_TPL.p5none, 5)(s),
+    ];
+    return parts.filter(Boolean).join('');
+  };
+  let fallback = '';
+  for (let k = 0; k < 12; k++) {
+    const t = build(k);
+    const len = [...t].length;
+    if (len >= 150 && len <= 260) return t;
+    if (!fallback) fallback = t;
+  }
+  return fallback;
+}
+/* ---- 純粋な関数 ここまで ---- */
+UI.hintLv = loadHintLv();
+function requestHint() {
+  const g = UI.game;
+  if (!UI.hintOn || !isSoloGame(g) || !isHumanTurn(g) || UI.hintBusy) return;
+  UI.hintBusy = true;
+  const token = ++UI.hintToken;
+  const view = CPU.view(g, UI.myId);
+  renderButtons(g);
+  CPU.choosePlayAsync(view, UI.hintLv, pick => {
+    if (UI.hintToken !== token) return;
+    UI.hintBusy = false;
+    if (!UI.game || UI.game !== g || !isHumanTurn(UI.game)) { if (UI.game) renderButtons(UI.game); return; }
+    UI.hint = { ids: new Set(pick ? pick.cards.map(c => c.id) : []), reason: hintReason(view, pick) };
+    UI.hintUses++;
+    renderAll();
+  });
+}
+// 履歴（局の全手）。捨て札・渡し札は、関係する人にだけ札を見せ、ほかは枚数だけ
+function openLog() {
+  const g = UI.game;
+  if (!isSoloGame(g)) return;
+  const rows = (g.log || []).map(e => logLine(g, e)).join('') || '<p class="small">まだ手がありません</p>';
+  openOverlay('log', `<div class="modal"><h2>この局の履歴</h2><div class="loglist">${rows}</div>
+    <div class="row"><button class="btn big" data-act="close">閉じる</button></div></div>`);
+}
+function logLine(g, e) {
+  const who = e.idx != null ? esc(g.players[e.idx].name) : '';
+  const tags = t => t.map(x => `<span class="fx">${x}</span>`).join('');
+  if (e.t === 'play') {
+    const f = e.fx || {}, t = [];
+    if (f.rev) t.push('階段革命'); if (f.revo) t.push('革命'); if (f.eleven) t.push('11バック');
+    if (f.eight) t.push('8切り'); if (f.tens) t.push(`10捨て${f.tens}枚`); if (f.sevens) t.push(`7渡し${f.sevens}枚`);
+    if (e.fin) t.push('上がり');
+    return `<div class="logrow">#${e.n} ${who}：${e.cards.map(cardName).join(' ')}（${Logic.kindText(e.kind, e.len, e.rev)}）${tags(t)}</div>`;
+  }
+  if (e.t === 'pass') return `<div class="logrow">#${e.n} ${who}：パス</div>`;
+  if (e.t === 'flush') return `<div class="logrow">#${e.n} 場が流れました</div>`;
+  if (e.t === 'discard') {
+    const shown = e.idx === UI.myId && e.cards;
+    return `<div class="logrow">#${e.n} ${who}：10捨て ${shown ? e.cards.map(cardName).join(' ') : `${e.cnt}枚（札は非公開）`}${e.fin ? tags(['上がり']) : ''}</div>`;
+  }
+  if (e.t === 'give') {
+    const shown = (e.from === UI.myId || e.to === UI.myId) && e.cards;
+    return `<div class="logrow">#${e.n} ${esc(g.players[e.from].name)} → ${esc(g.players[e.to].name)}：7渡し ${shown ? e.cards.map(cardName).join(' ') : `${e.cnt}枚（札は非公開）`}</div>`;
+  }
+  return '';
+}
+// 振り返り：人間の番ごとに、その時点の見え方（view）と実際の手を記録する
+function reviewSnap(g) { return isSoloGame(g) ? { view: CPU.view(g, UI.myId) } : null; }
+function reviewAdd(snap, ev) {
+  if (!snap) return;
+  if (UI.review.length >= REVIEW_MAX) { UI.reviewFull = true; return; }
+  const move = ev && ev.type === 'play' ? { ids: ev.cards.map(c => c.id), rev: !!ev.rev, lo: ev.lo ?? null } : { pass: true };
+  UI.review.push({ view: snap.view, move });
+}
+const moveKey = m => m.pass ? 'pass' : (m.rev ? 'R' : 'N') + (m.lo != null ? 'L' + m.lo + ':' : '') + m.ids.slice().sort().join('.');
+const pickKey = p => p ? (p.rev ? 'R' : 'N') + (p.lo != null ? 'L' + p.lo + ':' : '') + p.cards.map(c => c.id).sort().join('.') : 'pass';
+function soloResultHTML(g) {
+  if (!isSoloGame(g)) return '';
+  return `<p class="small">ヒント使用：${UI.hintUses}回</p>
+    ${UI.review.length ? '<button class="btn" data-act="review">振り返り（この局の自分の手）</button>' : ''}`;
+}
+// 振り返り：記録した手を、選んだCPUの強さの提案と順に比べる（非同期・中止できる・途中で結果も見られる）
+function openReview() {
+  const g = UI.game;
+  const recs0 = UI.review.slice();
+  if (!recs0.length) { toast('振り返れる手がありません'); return; }
+  const lv = UI.hintLv;
+  const { list, eligible } = pickReviewRecords(recs0, lv);
+  const token = ++RV.token;
+  RV.stop = false;
+  const st = { compared: 0, matched: 0, cats: { effect: 0, passLate: 0, holdBack: 0, strongEarly: 0, shape: 0, other: 0 }, diffs: [] };
+  let i = 0;
+  const progress = () => openOverlay('review', `<div class="modal"><h2>振り返り</h2>
+    <p class="small">比べたCPU：${esc(lv)}（考える時間の目安：${HINT_LV_TIME[lv]}）</p>
+    <p class="small">この局のあなたの手を、CPUの提案と比べています（${i}/${list.length}手）…</p>
+    <p class="small">選ぶ余地のない手（${recs0.length - eligible}手）は比べていません。</p>
+    <div class="row"><button class="btn ghost small" data-act="reviewCancel">中止</button>
+    <button class="btn small" data-act="reviewStop">ここまでで結果を見る</button></div></div>`);
+  const finish = () => {
+    const me = g.players[UI.myId], n = g.players.length;
+    const rank = me.rank || n;
+    const role = me.role || Logic.roleForRank(rank, n);
+    const log = g.log || [];
+    const summary = buildReviewSummary({
+      n, rank, role,
+      roundRevs: log.filter(e => e.t === 'play' && e.fx && (e.fx.rev || e.fx.revo)).length,
+      myRevs: log.filter(e => e.t === 'play' && e.idx === UI.myId && e.fx && (e.fx.rev || e.fx.revo)).length,
+      my8: log.filter(e => e.t === 'play' && e.idx === UI.myId && e.fx && e.fx.eight).length,
+      myPasses: log.filter(e => e.t === 'pass' && e.idx === UI.myId).length,
+      compared: st.compared, matched: st.matched, cats: st.cats,
+      hintUses: UI.hintUses, gameCount: UI.series ? UI.series.gameCount : 0,
+    });
+    const rows = st.diffs.slice(0, 5).map(d => {
+      const mine = d.rec.move.pass ? 'パス' : cardsText(d.rec.view.hand, d.rec.move.ids);
+      const cpu = d.pick ? cardsText(d.rec.view.hand, d.pick.cards.map(c => c.id)) : 'パス';
+      return `<div class="rvrow"><p><b>${CLS_LABEL[d.cls]}</b></p><p><b>あなたの手</b>：${esc(mine)}</p><p><b>CPUの提案</b>：${esc(cpu)}</p><p><b>一言</b>：${esc(hintReason(d.rec.view, d.pick))}</p></div>`;
+    }).join('');
+    const catText = CLS_ORDER.filter(k => st.cats[k]).map(k => `${CLS_LABEL[k]} ${st.cats[k]}`).join('、');
+    openOverlay('review', `<div class="modal"><h2>振り返り</h2>
+      <p class="small">比べたCPU：${esc(lv)}</p>
+      <p class="summary">${esc(summary)}</p>
+      <p class="small">比べた${st.compared}手 / 一致${st.matched}手${catText ? `（違いの内訳：${esc(catText)}）` : ''}</p>
+      ${rows || '<p>違う手は見つかりませんでした。</p>'}
+      <p class="small">参考であり、正解とは限りません。</p>
+      <div class="row"><button class="btn big" data-act="reviewBack">結果に戻る</button></div></div>`);
+  };
+  const cardsText = (hand, ids) => ids.map(id => hand.find(c => c.id === id)).filter(Boolean).map(cardName).join(' ') || 'パス';
+  const step = () => {
+    if (RV.token !== token) return;
+    if (RV.stop || i >= list.length) return finish();
+    const rec = list[i];
+    CPU.choosePlayAsync(rec.view, lv, pick => {
+      if (RV.token !== token) return;
+      i++;
+      st.compared++;
+      if (moveKey(rec.move) === pickKey(pick)) st.matched++;
+      else {
+        const cls = classifyDiff(rec.view, rec.move, pick);
+        st.cats[cls]++;
+        st.diffs.push({ rec, pick, cls });
+      }
+      progress();
+      setTimeout(step, 0);
+    });
+  };
+  progress();
+  step();
 }
 function toggleCard(id) {
   const g = UI.game;
@@ -15570,6 +16106,7 @@ function startNewGame() {
   clearTimeout(UI.timer);
   closeOverlay();
   UI.game = Logic.startGame(UI.series);
+  UI.review = []; UI.reviewFull = false; UI.hintUses = 0; UI.hint = null; UI.hintBusy = false;
   UI.selected.clear();
   UI.messages = [];
   UI.lastPlayId = -1; UI.fieldSig = '';
@@ -15638,6 +16175,7 @@ function openResult() {
       <button class="btn big" data-act="next">次のゲーム</button>
       <button class="btn" data-act="shareResult" data-rank="${myRank}" data-role="${esc(myRole)}">結果を𝕏（Twitter）でシェア</button>
       <button class="btn" data-act="board">スコアボード</button>
+      ${soloResultHTML(g)}
       <button class="btn ghost" data-act="endSeries">連続戦を終了</button>
     </div></div>`);
 }
@@ -15745,6 +16283,7 @@ function readSettingsDOM() {
   const h = $('#hlIn'); if (h) UI.highlight = h.checked;
   const s = $('#sndIn'); if (s && s.checked !== Sound.enabled) Sound.setEnabled(s.checked);
   const pi = $('#persistIn'); if (pi && pi.checked !== Persist.enabled()) Persist.setEnabled(pi.checked);
+  const hi = $('#hintIn'); if (hi && hi.checked !== UI.hintOn) setHintPref(hi.checked);
   normalizeRules(d.rules);
   Persist.save();
 }
@@ -15896,7 +16435,6 @@ const Scan = (() => {
  *    サーバーは使わない。接続コードをコピー＆ペーストして1対1の接続を作る。
  *    ホストが対局を管理し、ゲストは表示と操作の送信だけを行う。
  * ===================================================================== */
-const NET_PREFIX = 'DFG1.';
 const isHost = () => !!UI.net && UI.net.role === 'host';
 const isGuest = () => !!UI.net && UI.net.role === 'guest';
 const hostPeers = () => (UI.net ? UI.net.peers : []);
@@ -16087,7 +16625,13 @@ function maskFor(g, seat) {
     const hand = reveal ? p.hand : p.hand.map((c, k) => ({ id: -1000 - p.id * 100 - k, suit: 'X', num: 0 }));
     return { ...p, hand };
   });
-  return JSON.parse(JSON.stringify({ ...g, players }));
+  // 履歴の札は、捨てた人・渡した人・受けた人にだけ見せる（ほかの座席へは札を消して送る）
+  const log = (g.log || []).map(e => {
+    if (e.t === 'discard' && e.idx !== seat) return { ...e, cards: null };
+    if (e.t === 'give' && seat !== e.from && seat !== e.to) return { ...e, cards: null };
+    return e;
+  });
+  return JSON.parse(JSON.stringify({ ...g, players, log }));
 }
 function netBroadcast() {
   if (!isHost() || !UI.game || !UI.series) return;
@@ -16199,14 +16743,19 @@ function applyAct(seat, a) {
   if (a.k === 'play') {
     if (g.phase !== 'play' || g.turn !== seat) return fail('あなたの番ではありません');
     const cards = g.players[seat].hand.filter(c => a.ids.includes(c.id));
-    const res = Logic.applyPlay(g, seat, cards, a.mode || 'normal');
+    // lo は階段の並び（ジョーカー入りで候補が2つ以上のときだけ付く）。不正な値は Logic 側で弾かれる
+    const rv = local ? reviewSnap(g) : null;
+    const res = Logic.applyPlay(g, seat, cards, a.mode || 'normal', typeof a.lo === 'number' ? a.lo : null);
     if (!res.ok) return fail(res.reason);
+    reviewAdd(rv, res.events.find(e => e.type === 'play'));
     if (local) UI.selected.clear();
     afterAction(g, res.events);
   } else if (a.k === 'pass') {
     if (g.phase !== 'play' || g.turn !== seat) return fail('あなたの番ではありません');
+    const rv = local ? reviewSnap(g) : null;   // 手を適用する前の状態を記録する
     const res = Logic.applyPass(g, seat);
     if (!res.ok) return fail(res.reason);
+    reviewAdd(rv, { type: 'pass' });
     if (local) UI.selected.clear();
     afterAction(g, res.events);
   } else if (a.k === 'seven') {
@@ -16361,6 +16910,33 @@ const ACTIONS = {
   cpu: b => { readSettingsDOM(); UI.draft.cpuCount = +b.dataset.n; render(); },
   start: () => startSeries(),
   play: () => humanPlay(),
+  log: () => openLog(),
+  hint: () => requestHint(),
+  passRes: () => { UI.passRes = !UI.passRes; renderButtons(UI.game); },
+  review: () => openReview(),
+  reviewCancel: () => { RV.token++; openResult(); },
+  reviewStop: () => { RV.stop = true; },
+  hintLv: b => {
+    setHintLv(b.dataset.v);
+    document.querySelectorAll('.lvbtn').forEach(x => {
+      const on = x.dataset.v === UI.hintLv;
+      x.classList.toggle('on', on);
+      x.setAttribute('aria-checked', String(on));
+    });
+  },
+  reviewBack: () => openResult(),
+  stairPick: b => {
+    if (!UI.stairPick) return;
+    UI.stairPick.lo = b.dataset.lo === 'set' ? null : +b.dataset.lo;
+    document.querySelectorAll('#overlay [data-act="stairPick"]').forEach(x => x.classList.toggle('on', x === b));
+  },
+  stairPickGo: () => {
+    const sp = UI.stairPick;
+    if (!sp) return;
+    UI.stairPick = null;
+    closeOverlay();
+    submit({ k: 'play', ids: sp.ids, mode: sp.mode, lo: sp.lo });
+  },
   pass: () => humanPass(),
   sort: () => { UI.sortMode = UI.sortMode === 'num' ? 'suit' : 'num'; Persist.save(); Sound.slide(2); renderHand(UI.game); renderButtons(UI.game); },
   hl: () => { UI.highlight = !UI.highlight; Persist.save(); renderAll(); },
